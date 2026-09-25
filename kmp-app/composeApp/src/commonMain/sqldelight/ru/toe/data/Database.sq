@@ -1,0 +1,86 @@
+PRAGMA foreign_keys = 1;
+
+CREATE TABLE sources (
+    id INTEGER NOT NULL PRIMARY KEY,
+    file_name TEXT NOT NULL UNIQUE,
+    question_count INTEGER NOT NULL
+);
+
+CREATE TABLE topics (
+    id INTEGER NOT NULL PRIMARY KEY,
+    source_id INTEGER NOT NULL REFERENCES sources(id),
+    position INTEGER NOT NULL,
+    start_index INTEGER NOT NULL,
+    question_count INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    UNIQUE(source_id, position)
+);
+
+CREATE TABLE questions (
+    id INTEGER NOT NULL PRIMARY KEY,
+    source_id INTEGER NOT NULL REFERENCES sources(id),
+    topic_id INTEGER REFERENCES topics(id),
+    source_index INTEGER NOT NULL,
+    question_number INTEGER NOT NULL,
+    question_label TEXT NOT NULL,
+    legacy_sequence INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    hint_1 TEXT NOT NULL,
+    hint_2 TEXT NOT NULL,
+    image_file TEXT,
+    correct_answer_mask INTEGER NOT NULL,
+    extraction_warnings TEXT NOT NULL,
+    UNIQUE(source_id, source_index)
+);
+
+CREATE TABLE answers (
+    id INTEGER NOT NULL PRIMARY KEY,
+    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    position INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    is_correct INTEGER NOT NULL,
+    UNIQUE(question_id, position)
+);
+
+CREATE TABLE metadata (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+selectSources:
+SELECT id, file_name, question_count
+FROM sources
+ORDER BY id;
+
+selectTopicsForSource:
+SELECT id, source_id, position, question_count, name
+FROM topics
+WHERE source_id = :sourceId
+ORDER BY position;
+
+selectQuestionsForTopic:
+SELECT id, source_index, question_number, text, image_file,
+       correct_answer_mask, extraction_warnings
+FROM questions
+WHERE topic_id = :topicId
+  AND (
+      :queryText = ''
+      OR lower(text) LIKE '%' || lower(:queryText) || '%'
+      OR CAST(question_number AS TEXT) LIKE '%' || :queryText || '%'
+  )
+ORDER BY source_index;
+
+selectQuestionById:
+SELECT q.id, q.question_number, q.question_label, q.text, q.hint_1, q.hint_2,
+       q.image_file, q.correct_answer_mask, q.extraction_warnings,
+       t.name AS topic_name, s.file_name AS source_file
+FROM questions q
+JOIN sources s ON s.id = q.source_id
+LEFT JOIN topics t ON t.id = q.topic_id
+WHERE q.id = :questionId;
+
+selectAnswersForQuestion:
+SELECT position, text, is_correct
+FROM answers
+WHERE question_id = :questionId
+ORDER BY position;

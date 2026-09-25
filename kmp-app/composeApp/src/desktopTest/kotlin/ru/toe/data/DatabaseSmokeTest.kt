@@ -1,0 +1,42 @@
+package ru.toe.data
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+
+class DatabaseSmokeTest {
+    private val repository = QuestionRepository(createDatabase())
+
+    @Test
+    fun readsAllSourcesAndTopics() {
+        val sources = repository.sources()
+        assertEquals(listOf(265L, 317L), sources.map { it.questionCount })
+        assertEquals(5, repository.topics(sources.first().id).size)
+        assertEquals(5, repository.topics(sources.last().id).size)
+    }
+
+    @Test
+    fun readsQuestionAndExpectedAnswer() {
+        val source = repository.sources().first()
+        val topic = repository.topics(source.id).first()
+        val summary = repository.questions(topic.id, "").first()
+        val question = assertNotNull(repository.question(summary.id))
+
+        assertEquals(1L, question.number)
+        assertEquals(5L, question.answers.single { it.isExpected }.position)
+        assertNotNull(question.imageFile)
+    }
+
+    @Test
+    fun filtersQuestionsAndPreservesKnownSourceDefect() {
+        val source = repository.sources().last()
+        val topic = repository.topics(source.id)[1]
+        val matches = repository.questions(topic.id, "121")
+
+        assertEquals(1, matches.size)
+        val question = assertNotNull(repository.question(matches.single().id))
+        assertEquals(121L, question.number)
+        assertEquals("missing_correct_answer", question.warnings)
+        assertEquals(0, question.answers.count { it.isExpected })
+    }
+}

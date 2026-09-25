@@ -1,0 +1,12 @@
+.DS_Store
+test/
+test.rar
+dist/*.dmg
+analysis/database/images/
+analysis/inspection.log
+tools/__pycache__/
+kmp-app/.gradle/
+kmp-app/.kotlin/
+kmp-app/.idea/
+kmp-app/**/build/
+*.iml

@@ -1,0 +1,72 @@
+[
+  {
+    "source_file": "TEST1.DAT",
+    "position": 1,
+    "start_index": 0,
+    "question_count": 35,
+    "name": "Электростатическое поле"
+  },
+  {
+    "source_file": "TEST1.DAT",
+    "position": 2,
+    "start_index": 35,
+    "question_count": 34,
+    "name": "Электрическое поле тока"
+  },
+  {
+    "source_file": "TEST1.DAT",
+    "position": 3,
+    "start_index": 69,
+    "question_count": 43,
+    "name": "Магнитное поле тока"
+  },
+  {
+    "source_file": "TEST1.DAT",
+    "position": 4,
+    "start_index": 112,
+    "question_count": 48,
+    "name": "Электромагнитное поле"
+  },
+  {
+    "source_file": "TEST1.DAT",
+    "position": 5,
+    "start_index": 160,
+    "question_count": 105,
+    "name": "Теория"
+  },
+  {
+    "source_file": "TEST2.DAT",
+    "position": 1,
+    "start_index": 0,
+    "question_count": 52,
+    "name": "Эл. цепи постоянного тока"
+  },
+  {
+    "source_file": "TEST2.DAT",
+    "position": 2,
+    "start_index": 52,
+    "question_count": 83,
+    "name": "Эл. цепи синусоидального тока"
+  },
+  {
+    "source_file": "TEST2.DAT",
+    "position": 3,
+    "start_index": 135,
+    "question_count": 50,
+    "name": "Несинусоидальные токи"
+  },
+  {
+    "source_file": "TEST2.DAT",
+    "position": 4,
+    "start_index": 185,
+    "question_count": 52,
+    "name": "Трехфазные цепи"
+  },
+  {
+    "source_file": "TEST2.DAT",
+    "position": 5,
+    "start_index": 237,
+    "question_count": 80,
+    "name": "Вопросы теории"
+  }
+]
