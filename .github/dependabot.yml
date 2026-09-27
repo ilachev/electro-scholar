@@ -4,22 +4,72 @@ updates:
     directory: /kmp-app
     schedule:
       interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 3
     groups:
       kotlin-platform:
         patterns:
           - "org.jetbrains.kotlin*"
           - "org.jetbrains.compose*"
+        update-types:
+          - minor
+          - patch
+      android-toolchain:
+        patterns:
+          - "gradle-wrapper"
+          - "com.android*"
+        update-types:
+          - minor
+          - patch
       android-platform:
         patterns:
-          - "com.android*"
           - "androidx*"
+        update-types:
+          - minor
+          - patch
+      sqldelight:
+        patterns:
+          - "app.cash.sqldelight*"
+        update-types:
+          - minor
+          - patch
+      remaining-gradle:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: pip
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "06:15"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 1
+    groups:
+      analysis-tooling:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "06:30"
+      timezone: Europe/Moscow
+    open-pull-requests-limit: 1
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
