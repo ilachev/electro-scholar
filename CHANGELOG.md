@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/ilachev/electro-scholar/compare/v1.0.0...v1.0.1) (2026-09-27)
+
+
+### Continuous integration
+
+* pass repository to the release publisher ([#7](https://github.com/ilachev/electro-scholar/issues/7)) ([21abb7e](https://github.com/ilachev/electro-scholar/commit/21abb7ed9d4a2a9f7218fcd932b1a699fe5c2e51))
+
 ## 1.0.0 (2026-09-27)
 
 
