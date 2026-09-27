@@ -1,0 +1,291 @@
+{
+  "schema_version": "circuit-ir/v1",
+  "document_id": "legacy-test:test2:018",
+  "source_asset": {
+    "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+    "sha256": "dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+    "uri": "images/TEST2_018.jpg",
+    "observation_document": "analysis/examples/observation-ir-example.json"
+  },
+  "components": [
+    {
+      "id": "component:r1-top",
+      "device_class": "resistor",
+      "reference": "R1 (top)",
+      "value": { "raw_text": "R1", "latex": "R_1" },
+      "pin_ids": ["pin:r1-top:1", "pin:r1-top:2"],
+      "evidence": {
+        "observation_refs": ["primitive:symbol:r1-top"],
+        "confidence": 0.99,
+        "review_status": "accepted"
+      }
+    },
+    {
+      "id": "component:r2-top",
+      "device_class": "resistor",
+      "reference": "R2 (top)",
+      "value": { "raw_text": "R2", "latex": "R_2" },
+      "pin_ids": ["pin:r2-top:1", "pin:r2-top:2"],
+      "evidence": {
+        "observation_refs": ["primitive:symbol:r2-top"],
+        "confidence": 0.99,
+        "review_status": "accepted"
+      }
+    },
+    {
+      "id": "component:r1-bottom",
+      "device_class": "resistor",
+      "reference": "R1 (bottom)",
+      "value": { "raw_text": "R1", "latex": "R_1" },
+      "pin_ids": ["pin:r1-bottom:1", "pin:r1-bottom:2"],
+      "evidence": {
+        "observation_refs": ["primitive:symbol:r1-bottom"],
+        "confidence": 0.99,
+        "review_status": "accepted"
+      }
+    },
+    {
+      "id": "component:r2-bottom",
+      "device_class": "resistor",
+      "reference": "R2 (bottom)",
+      "value": { "raw_text": "R2", "latex": "R_2" },
+      "pin_ids": ["pin:r2-bottom:1", "pin:r2-bottom:2"],
+      "evidence": {
+        "observation_refs": ["primitive:symbol:r2-bottom"],
+        "confidence": 0.99,
+        "review_status": "accepted"
+      }
+    },
+    {
+      "id": "component:s1",
+      "device_class": "switch",
+      "reference": "S1",
+      "pin_ids": ["pin:s1:a", "pin:s1:b"],
+      "parameters": { "allowed_states": ["open", "closed"] },
+      "evidence": {
+        "observation_refs": ["primitive:symbol:s1", "hypothesis:component:s1"],
+        "confidence": 0.95,
+        "review_status": "needs_review"
+      }
+    }
+  ],
+  "pins": [
+    { "id": "pin:r1-top:1", "component_id": "component:r1-top", "number": "1", "electrical_role": "passive" },
+    { "id": "pin:r1-top:2", "component_id": "component:r1-top", "number": "2", "electrical_role": "passive" },
+    { "id": "pin:r2-top:1", "component_id": "component:r2-top", "number": "1", "electrical_role": "passive" },
+    { "id": "pin:r2-top:2", "component_id": "component:r2-top", "number": "2", "electrical_role": "passive" },
+    { "id": "pin:r1-bottom:1", "component_id": "component:r1-bottom", "number": "1", "electrical_role": "passive" },
+    { "id": "pin:r1-bottom:2", "component_id": "component:r1-bottom", "number": "2", "electrical_role": "passive" },
+    { "id": "pin:r2-bottom:1", "component_id": "component:r2-bottom", "number": "1", "electrical_role": "passive" },
+    { "id": "pin:r2-bottom:2", "component_id": "component:r2-bottom", "number": "2", "electrical_role": "passive" },
+    { "id": "pin:s1:a", "component_id": "component:s1", "name": "a", "electrical_role": "passive" },
+    { "id": "pin:s1:b", "component_id": "component:s1", "name": "b", "electrical_role": "passive" }
+  ],
+  "ports": [
+    { "id": "port:left", "name": "left terminal", "direction": "bidirectional" },
+    { "id": "port:right", "name": "right terminal", "direction": "bidirectional" }
+  ],
+  "nets": [
+    {
+      "id": "net:left",
+      "kind": "signal",
+      "pin_ids": ["pin:r1-top:1", "pin:r1-bottom:1"],
+      "port_ids": ["port:left"],
+      "evidence": {
+        "observation_refs": ["primitive:wire:left"],
+        "confidence": 0.99,
+        "review_status": "accepted"
+      }
+    },
+    {
+      "id": "net:right",
+      "kind": "signal",
+      "pin_ids": ["pin:r2-top:2", "pin:r2-bottom:2"],
+      "port_ids": ["port:right"],
+      "evidence": {
+        "observation_refs": ["primitive:wire:right"],
+        "confidence": 0.99,
+        "review_status": "accepted"
+      }
+    },
+    {
+      "id": "net:top-mid",
+      "kind": "signal",
+      "pin_ids": ["pin:r1-top:2", "pin:r2-top:1", "pin:s1:a"],
+      "port_ids": [],
+      "evidence": {
+        "observation_refs": ["primitive:junction:top-mid", "hypothesis:junction:top-mid"],
+        "confidence": 0.98,
+        "review_status": "accepted"
+      }
+    },
+    {
+      "id": "net:bottom-mid",
+      "kind": "signal",
+      "pin_ids": ["pin:r1-bottom:2", "pin:r2-bottom:1", "pin:s1:b"],
+      "port_ids": [],
+      "evidence": {
+        "observation_refs": ["primitive:junction:bottom-mid", "hypothesis:junction:bottom-mid"],
+        "confidence": 0.98,
+        "review_status": "accepted"
+      }
+    }
+  ],
+  "operating_states": [
+    {
+      "id": "state:open",
+      "name": "Switch open",
+      "component_states": [{ "component_id": "component:s1", "state": "open" }]
+    },
+    {
+      "id": "state:closed",
+      "name": "Switch closed",
+      "component_states": [{ "component_id": "component:s1", "state": "closed" }]
+    }
+  ],
+  "layout": {
+    "coordinate_unit": "pixel",
+    "symbols": [
+      {
+        "component_id": "component:r1-top",
+        "bounds": { "x": 376, "y": 82, "width": 40, "height": 18 },
+        "rotation_deg": 0,
+        "mirrored": false,
+        "pin_positions": [
+          { "pin_id": "pin:r1-top:1", "position": { "x": 376, "y": 91 } },
+          { "pin_id": "pin:r1-top:2", "position": { "x": 416, "y": 91 } }
+        ]
+      },
+      {
+        "component_id": "component:r2-top",
+        "bounds": { "x": 453, "y": 82, "width": 40, "height": 18 },
+        "rotation_deg": 0,
+        "mirrored": false,
+        "pin_positions": [
+          { "pin_id": "pin:r2-top:1", "position": { "x": 453, "y": 91 } },
+          { "pin_id": "pin:r2-top:2", "position": { "x": 493, "y": 91 } }
+        ]
+      },
+      {
+        "component_id": "component:r1-bottom",
+        "bounds": { "x": 376, "y": 151, "width": 40, "height": 18 },
+        "rotation_deg": 0,
+        "mirrored": false,
+        "pin_positions": [
+          { "pin_id": "pin:r1-bottom:1", "position": { "x": 376, "y": 160 } },
+          { "pin_id": "pin:r1-bottom:2", "position": { "x": 416, "y": 160 } }
+        ]
+      },
+      {
+        "component_id": "component:r2-bottom",
+        "bounds": { "x": 453, "y": 151, "width": 40, "height": 18 },
+        "rotation_deg": 0,
+        "mirrored": false,
+        "pin_positions": [
+          { "pin_id": "pin:r2-bottom:1", "position": { "x": 453, "y": 160 } },
+          { "pin_id": "pin:r2-bottom:2", "position": { "x": 493, "y": 160 } }
+        ]
+      },
+      {
+        "component_id": "component:s1",
+        "bounds": { "x": 423, "y": 109, "width": 17, "height": 37 },
+        "rotation_deg": 90,
+        "mirrored": false,
+        "pin_positions": [
+          { "pin_id": "pin:s1:a", "position": { "x": 431, "y": 110 } },
+          { "pin_id": "pin:s1:b", "position": { "x": 431, "y": 145 } }
+        ]
+      }
+    ],
+    "port_positions": [
+      { "port_id": "port:left", "position": { "x": 362, "y": 204 } },
+      { "port_id": "port:right", "position": { "x": 519, "y": 204 } }
+    ],
+    "wires": [
+      {
+        "id": "wire:left-main",
+        "net_id": "net:left",
+        "points": [
+          { "x": 362, "y": 204 },
+          { "x": 362, "y": 91 },
+          { "x": 376, "y": 91 }
+        ]
+      },
+      {
+        "id": "wire:left-bottom",
+        "net_id": "net:left",
+        "points": [{ "x": 362, "y": 160 }, { "x": 376, "y": 160 }]
+      },
+      {
+        "id": "wire:right-main",
+        "net_id": "net:right",
+        "points": [
+          { "x": 493, "y": 91 },
+          { "x": 519, "y": 91 },
+          { "x": 519, "y": 204 }
+        ]
+      },
+      {
+        "id": "wire:right-bottom",
+        "net_id": "net:right",
+        "points": [{ "x": 493, "y": 160 }, { "x": 519, "y": 160 }]
+      },
+      {
+        "id": "wire:top-mid-horizontal",
+        "net_id": "net:top-mid",
+        "points": [{ "x": 416, "y": 91 }, { "x": 453, "y": 91 }]
+      },
+      {
+        "id": "wire:top-mid-switch",
+        "net_id": "net:top-mid",
+        "points": [{ "x": 431, "y": 91 }, { "x": 431, "y": 110 }]
+      },
+      {
+        "id": "wire:bottom-mid-horizontal",
+        "net_id": "net:bottom-mid",
+        "points": [{ "x": 416, "y": 160 }, { "x": 453, "y": 160 }]
+      },
+      {
+        "id": "wire:bottom-mid-switch",
+        "net_id": "net:bottom-mid",
+        "points": [{ "x": 431, "y": 145 }, { "x": 431, "y": 160 }]
+      }
+    ],
+    "junctions": [
+      {
+        "id": "junction:top-mid",
+        "net_id": "net:top-mid",
+        "position": { "x": 431, "y": 91 },
+        "explicit_dot": true
+      },
+      {
+        "id": "junction:bottom-mid",
+        "net_id": "net:bottom-mid",
+        "position": { "x": 431, "y": 160 },
+        "explicit_dot": true
+      }
+    ],
+    "labels": [
+      {
+        "id": "label:r1-top",
+        "text": "R1",
+        "latex": "R_1",
+        "position": { "x": 395, "y": 73 },
+        "target_type": "component",
+        "target_id": "component:r1-top"
+      },
+      {
+        "id": "label:r2-top",
+        "text": "R2",
+        "latex": "R_2",
+        "position": { "x": 471, "y": 73 },
+        "target_type": "component",
+        "target_id": "component:r2-top"
+      }
+    ]
+  },
+  "verification": {
+    "status": "partially_reviewed",
+    "review_event_ids": ["review:example:1"]
+  }
+}

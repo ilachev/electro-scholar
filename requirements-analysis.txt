@@ -1,0 +1,8 @@
+# Runtime dependencies for media inventory and Technical IR validation.
+# Direct and transitive versions are pinned so the analysis remains reproducible.
+attrs==26.1.0
+jsonschema==4.25.1
+jsonschema-specifications==2025.9.1
+Pillow==12.0.0
+referencing==0.37.0
+rpds-py==2026.6.3

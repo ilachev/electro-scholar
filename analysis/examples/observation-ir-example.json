@@ -1,0 +1,172 @@
+{
+  "schema_version": "observation-ir/v1",
+  "document_id": "legacy-test:test2:018",
+  "source_asset": {
+    "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+    "sha256": "dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+    "mime_type": "image/jpeg",
+    "width": 567,
+    "height": 237,
+    "uri": "images/TEST2_018.jpg"
+  },
+  "regions": [
+    {
+      "id": "region:circuit:1",
+      "bounds": { "x": 350, "y": 70, "width": 185, "height": 165 },
+      "kind": "circuit",
+      "status": "accepted",
+      "confidence": 1.0,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    }
+  ],
+  "primitives": [
+    {
+      "id": "primitive:symbol:r1-top",
+      "region_id": "region:circuit:1",
+      "kind": "symbol_candidate",
+      "geometry": {
+        "type": "bounds",
+        "bounds": { "x": 376, "y": 82, "width": 40, "height": 18 }
+      },
+      "class_label": "resistor",
+      "confidence": 0.99,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:symbol:r2-top",
+      "region_id": "region:circuit:1",
+      "kind": "symbol_candidate",
+      "geometry": {
+        "type": "bounds",
+        "bounds": { "x": 453, "y": 82, "width": 40, "height": 18 }
+      },
+      "class_label": "resistor",
+      "confidence": 0.99,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:symbol:r1-bottom",
+      "region_id": "region:circuit:1",
+      "kind": "symbol_candidate",
+      "geometry": {
+        "type": "bounds",
+        "bounds": { "x": 376, "y": 151, "width": 40, "height": 18 }
+      },
+      "class_label": "resistor",
+      "confidence": 0.99,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:symbol:r2-bottom",
+      "region_id": "region:circuit:1",
+      "kind": "symbol_candidate",
+      "geometry": {
+        "type": "bounds",
+        "bounds": { "x": 453, "y": 151, "width": 40, "height": 18 }
+      },
+      "class_label": "resistor",
+      "confidence": 0.99,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:symbol:s1",
+      "region_id": "region:circuit:1",
+      "kind": "symbol_candidate",
+      "geometry": {
+        "type": "bounds",
+        "bounds": { "x": 421, "y": 99, "width": 22, "height": 51 }
+      },
+      "class_label": "switch",
+      "confidence": 0.95,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:wire:left",
+      "region_id": "region:circuit:1",
+      "kind": "wire_segment",
+      "geometry": {
+        "type": "polyline",
+        "points": [
+          { "x": 362, "y": 216 },
+          { "x": 362, "y": 91 },
+          { "x": 376, "y": 91 }
+        ]
+      },
+      "confidence": 0.99,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:wire:right",
+      "region_id": "region:circuit:1",
+      "kind": "wire_segment",
+      "geometry": {
+        "type": "polyline",
+        "points": [
+          { "x": 493, "y": 91 },
+          { "x": 519, "y": 91 },
+          { "x": 519, "y": 216 }
+        ]
+      },
+      "confidence": 0.99,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:junction:top-mid",
+      "region_id": "region:circuit:1",
+      "kind": "junction_dot",
+      "geometry": { "type": "point", "point": { "x": 431, "y": 91 } },
+      "confidence": 0.98,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "primitive:junction:bottom-mid",
+      "region_id": "region:circuit:1",
+      "kind": "junction_dot",
+      "geometry": { "type": "point", "point": { "x": 431, "y": 160 } },
+      "confidence": 0.98,
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "hypothesis:component:s1",
+      "kind": "component_classification",
+      "input_refs": ["primitive:symbol:s1"],
+      "candidate": { "device_class": "switch", "terminal_count": 2 },
+      "alternatives": [],
+      "confidence": 0.95,
+      "status": "needs_review",
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "hypothesis:junction:top-mid",
+      "kind": "junction",
+      "input_refs": ["primitive:junction:top-mid"],
+      "candidate": { "electrically_connected": true },
+      "alternatives": [{ "electrically_connected": false }],
+      "confidence": 0.98,
+      "status": "accepted",
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    },
+    {
+      "id": "hypothesis:junction:bottom-mid",
+      "kind": "junction",
+      "input_refs": ["primitive:junction:bottom-mid"],
+      "candidate": { "electrically_connected": true },
+      "alternatives": [{ "electrically_connected": false }],
+      "confidence": 0.98,
+      "status": "accepted",
+      "producer": { "kind": "human", "name": "example-author", "version": "1" }
+    }
+  ],
+  "review_events": [
+    {
+      "id": "review:example:1",
+      "target_ref": "region:circuit:1",
+      "reviewer": "example-author",
+      "decision": "accept",
+      "comment": "Circuit region selected manually for the schema example.",
+      "created_at": "2026-09-27T12:00:00+03:00"
+    }
+  ]
+}

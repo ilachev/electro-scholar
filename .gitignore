@@ -1,10 +1,11 @@
 .DS_Store
+.venv/
+__pycache__/
 test/
 test.rar
 dist/*.dmg
 analysis/database/images/
 analysis/inspection.log
-tools/__pycache__/
 kmp-app/.gradle/
 kmp-app/.kotlin/
 kmp-app/.idea/

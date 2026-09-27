@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://toe-project.local/schemas/circuit-ir-v1.schema.json",
+  "title": "Electrical Circuit IR v1",
+  "description": "Canonical circuit topology with an optional, separate drawing layout and immutable provenance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_id",
+    "source_asset",
+    "components",
+    "pins",
+    "ports",
+    "nets",
+    "operating_states",
+    "layout",
+    "verification"
+  ],
+  "properties": {
+    "schema_version": { "const": "circuit-ir/v1" },
+    "document_id": { "$ref": "#/$defs/id" },
+    "source_asset": { "$ref": "#/$defs/sourceAssetRef" },
+    "components": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/component" }
+    },
+    "pins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pin" }
+    },
+    "ports": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/port" }
+    },
+    "nets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/net" }
+    },
+    "operating_states": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/operatingState" }
+    },
+    "layout": { "$ref": "#/$defs/layout" },
+    "verification": { "$ref": "#/$defs/verification" },
+    "extensions": { "type": "object" }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "number", "minimum": 0 },
+        "y": { "type": "number", "minimum": 0 },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "sourceAssetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_id", "sha256", "uri"],
+      "properties": {
+        "asset_id": { "$ref": "#/$defs/id" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "uri": { "type": "string", "minLength": 1 },
+        "observation_document": { "type": "string" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_refs"],
+      "properties": {
+        "observation_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "review_status": {
+          "enum": ["unreviewed", "accepted", "corrected", "rejected", "needs_review"]
+        }
+      }
+    },
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "raw_text": { "type": "string" },
+        "latex": { "type": "string" },
+        "numeric_value": { "type": "number" },
+        "unit": { "type": "string" }
+      },
+      "anyOf": [
+        { "required": ["raw_text"] },
+        { "required": ["latex"] },
+        { "required": ["numeric_value"] }
+      ]
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "device_class", "pin_ids", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "device_class": {
+          "enum": [
+            "resistor",
+            "capacitor",
+            "inductor",
+            "voltage_source",
+            "current_source",
+            "switch",
+            "diode",
+            "transistor",
+            "transformer",
+            "meter",
+            "dependent_source",
+            "subcircuit",
+            "unknown"
+          ]
+        },
+        "reference": { "type": "string" },
+        "value": { "$ref": "#/$defs/quantity" },
+        "model": { "type": "string" },
+        "pin_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "parameters": { "type": "object" },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    },
+    "pin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "component_id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "component_id": { "$ref": "#/$defs/id" },
+        "number": { "type": "string" },
+        "name": { "type": "string" },
+        "electrical_role": {
+          "enum": [
+            "passive",
+            "input",
+            "output",
+            "bidirectional",
+            "positive",
+            "negative",
+            "control",
+            "unknown"
+          ]
+        },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "direction": {
+          "enum": ["input", "output", "bidirectional", "reference", "unknown"]
+        },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    },
+    "net": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "pin_ids", "port_ids", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "kind": { "enum": ["signal", "power", "ground", "reference", "unknown"] },
+        "aliases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "pin_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "port_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    },
+    "componentState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "state"],
+      "properties": {
+        "component_id": { "$ref": "#/$defs/id" },
+        "state": { "type": "string", "minLength": 1 },
+        "parameters": { "type": "object" }
+      }
+    },
+    "operatingState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "component_states"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "component_states": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/componentState" }
+        }
+      }
+    },
+    "symbolLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "bounds", "rotation_deg", "pin_positions"],
+      "properties": {
+        "component_id": { "$ref": "#/$defs/id" },
+        "bounds": { "$ref": "#/$defs/bounds" },
+        "rotation_deg": { "type": "number" },
+        "mirrored": { "type": "boolean", "default": false },
+        "pin_positions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pin_id", "position"],
+            "properties": {
+              "pin_id": { "$ref": "#/$defs/id" },
+              "position": { "$ref": "#/$defs/point" }
+            }
+          }
+        }
+      }
+    },
+    "wireLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "net_id", "points"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "net_id": { "$ref": "#/$defs/id" },
+        "points": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/point" }
+        }
+      }
+    },
+    "junctionLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "net_id", "position", "explicit_dot"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "net_id": { "$ref": "#/$defs/id" },
+        "position": { "$ref": "#/$defs/point" },
+        "explicit_dot": { "type": "boolean" }
+      }
+    },
+    "portLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["port_id", "position"],
+      "properties": {
+        "port_id": { "$ref": "#/$defs/id" },
+        "position": { "$ref": "#/$defs/point" }
+      }
+    },
+    "labelLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "position", "target_type", "target_id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "text": { "type": "string" },
+        "latex": { "type": "string" },
+        "position": { "$ref": "#/$defs/point" },
+        "target_type": { "enum": ["component", "net", "port"] },
+        "target_id": { "$ref": "#/$defs/id" }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coordinate_unit",
+        "symbols",
+        "port_positions",
+        "wires",
+        "junctions",
+        "labels"
+      ],
+      "properties": {
+        "coordinate_unit": { "enum": ["pixel", "mm", "mil", "arbitrary"] },
+        "symbols": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/symbolLayout" }
+        },
+        "port_positions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/portLayout" }
+        },
+        "wires": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/wireLayout" }
+        },
+        "junctions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/junctionLayout" }
+        },
+        "labels": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/labelLayout" }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "review_event_ids"],
+      "properties": {
+        "status": {
+          "enum": ["unreviewed", "partially_reviewed", "human_verified", "rejected"]
+        },
+        "review_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://toe-project.local/schemas/observation-ir-v1.schema.json",
+  "title": "Technical image Observation IR v1",
+  "description": "Versioned, reviewable observations and hypotheses extracted from one immutable source image.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_id",
+    "source_asset",
+    "regions",
+    "primitives",
+    "hypotheses",
+    "review_events"
+  ],
+  "properties": {
+    "schema_version": { "const": "observation-ir/v1" },
+    "document_id": { "$ref": "#/$defs/id" },
+    "source_asset": { "$ref": "#/$defs/sourceAsset" },
+    "regions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/region" }
+    },
+    "primitives": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/primitive" }
+    },
+    "hypotheses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/hypothesis" }
+    },
+    "review_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/reviewEvent" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "number", "minimum": 0 },
+        "y": { "type": "number", "minimum": 0 },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "geometry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "bounds"],
+          "properties": {
+            "type": { "const": "bounds" },
+            "bounds": { "$ref": "#/$defs/bounds" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "point"],
+          "properties": {
+            "type": { "const": "point" },
+            "point": { "$ref": "#/$defs/point" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "points"],
+          "properties": {
+            "type": { "const": "polyline" },
+            "points": {
+              "type": "array",
+              "minItems": 2,
+              "items": { "$ref": "#/$defs/point" }
+            }
+          }
+        }
+      ]
+    },
+    "sourceAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_id", "sha256", "mime_type", "width", "height", "uri"],
+      "properties": {
+        "asset_id": { "$ref": "#/$defs/id" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "mime_type": { "type": "string", "pattern": "^image/" },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "uri": { "type": "string", "minLength": 1 }
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "version"],
+      "properties": {
+        "kind": { "enum": ["human", "rule", "model"] },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "model_sha256": { "$ref": "#/$defs/sha256" },
+        "parameters": { "type": "object" }
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "bounds", "kind", "status", "producer"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "bounds": { "$ref": "#/$defs/bounds" },
+        "kind": {
+          "enum": [
+            "text",
+            "formula",
+            "circuit",
+            "plot",
+            "table",
+            "illustration",
+            "mixed",
+            "unknown"
+          ]
+        },
+        "status": { "$ref": "#/$defs/reviewStatus" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "producer": { "$ref": "#/$defs/producer" }
+      }
+    },
+    "primitive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "region_id", "kind", "geometry", "producer"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "region_id": { "$ref": "#/$defs/id" },
+        "kind": {
+          "enum": [
+            "line_segment",
+            "wire_segment",
+            "junction_dot",
+            "crossover",
+            "symbol_candidate",
+            "pin_candidate",
+            "text_line",
+            "text_token",
+            "formula_token",
+            "unknown"
+          ]
+        },
+        "geometry": { "$ref": "#/$defs/geometry" },
+        "class_label": { "type": "string" },
+        "text": { "type": "string" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "producer": { "$ref": "#/$defs/producer" }
+      }
+    },
+    "hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "input_refs",
+        "candidate",
+        "status",
+        "producer"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": {
+          "enum": [
+            "region_classification",
+            "component_classification",
+            "pin_attachment",
+            "wire_connection",
+            "junction",
+            "text_assignment",
+            "formula_transcription",
+            "unknown"
+          ]
+        },
+        "input_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "candidate": { "type": "object" },
+        "alternatives": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "status": { "$ref": "#/$defs/reviewStatus" },
+        "producer": { "$ref": "#/$defs/producer" }
+      }
+    },
+    "reviewStatus": {
+      "enum": ["unreviewed", "accepted", "corrected", "rejected", "needs_review"]
+    },
+    "reviewEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target_ref", "reviewer", "decision", "created_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "target_ref": { "$ref": "#/$defs/id" },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "decision": {
+          "enum": ["accept", "correct", "reject", "defer"]
+        },
+        "comment": { "type": "string" },
+        "replacement": { "type": "object" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
