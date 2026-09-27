@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/ilachev/electro-scholar/compare/v1.0.1...v1.0.2) (2026-09-27)
+
+
+### Build system
+
+* **deps:** consolidate dependency maintenance ([#9](https://github.com/ilachev/electro-scholar/issues/9)) ([8ff8b1a](https://github.com/ilachev/electro-scholar/commit/8ff8b1a17444c4c27821e04f2692152966cbac98))
+
 ## [1.0.1](https://github.com/ilachev/electro-scholar/compare/v1.0.0...v1.0.1) (2026-09-27)
 
 
