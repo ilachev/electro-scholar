@@ -8,5 +8,7 @@ plugins {
 allprojects {
     dependencyLocking {
         lockAllConfigurations()
+        ignoredDependencies.add("org.jetbrains.compose.desktop:desktop-jvm-*")
+        ignoredDependencies.add("org.jetbrains.skiko:skiko-awt-runtime-*")
     }
 }
