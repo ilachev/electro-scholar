@@ -340,6 +340,7 @@ def export_sqlite(
     connection.executescript(
         """
         PRAGMA foreign_keys = ON;
+        PRAGMA user_version = 1;
 
         CREATE TABLE sources (
             id INTEGER PRIMARY KEY,

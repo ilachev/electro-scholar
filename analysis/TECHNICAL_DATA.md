@@ -38,7 +38,7 @@ python3 -m venv .venv
 
 .venv/bin/python tools/analyze_media.py \
   --database analysis/database/question-bank.sqlite \
-  --image-root kmp-app/composeApp/src/desktopMain/resources/images \
+  --image-root kmp-app/features/question-bank/src/commonMain/composeResources/drawable \
   --output-dir analysis/media \
   --pilot-per-topic 5
 
@@ -48,7 +48,7 @@ python3 -m venv .venv
 
 .venv/bin/python tools/render_circuit_overlay.py \
   analysis/examples/circuit-ir-example.json \
-  --image-root kmp-app/composeApp/src/desktopMain/resources/images \
+  --image-root kmp-app/features/question-bank/src/commonMain/composeResources/drawable \
   --output analysis/examples/circuit-ir-example-overlay.png
 
 .venv/bin/python -m unittest discover -s tests -v

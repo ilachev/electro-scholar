@@ -1,6 +1,7 @@
 # ElectroScholar
 
 [![CI](https://github.com/ilachev/electro-scholar/actions/workflows/ci.yml/badge.svg)](https://github.com/ilachev/electro-scholar/actions/workflows/ci.yml)
+[![Release](https://github.com/ilachev/electro-scholar/actions/workflows/release.yml/badge.svg)](https://github.com/ilachev/electro-scholar/actions/workflows/release.yml)
 
 ElectroScholar is a cross-platform electrical engineering learning project. It
 combines a recovered legacy question bank with a modern Kotlin Multiplatform
@@ -16,8 +17,8 @@ language-independent.
 
 - Reproducible extraction of 582 questions, 2,685 answers, 10 topics, and 582
   JPEG images from a 16-bit educational application.
-- A runnable Compose Multiplatform desktop application backed by SQLite and
-  SQLDelight.
+- Runnable Compose Multiplatform applications for desktop and Android, with an
+  iOS Xcode host, backed by shared SQLite resources and SQLDelight.
 - A deterministic media inventory and a balanced 50-image annotation pilot.
 - Versioned `Observation IR v1` and `Circuit IR v1` JSON Schemas.
 - Semantic validation of components, pins, nets, operating states, provenance,
@@ -41,15 +42,29 @@ Python is an offline data and ML layer. The end-user application does not
 require Python. SQLite, JSON Schema, and JSON keep the recovered and reviewed
 data independent of any particular runtime.
 
-## Run the desktop application
+## Run the shared application
 
 Requirements: JDK 21. Gradle dependencies are resolved by the checked-in
-wrapper and locked by `gradle.lockfile`.
+wrapper and pinned by per-module lockfiles.
 
 ```bash
 cd kmp-app
-./gradlew :composeApp:run
+./gradlew :features:question-bank:jvmTest :desktopApp:run
 ```
+
+## Releases
+
+[GitHub Releases](https://github.com/ilachev/electro-scholar/releases) provide
+self-contained desktop installers for macOS (`.dmg`), Debian-based Linux
+(`.deb`), and Windows (`.msi`), an installable Android preview (`.apk`), an iOS
+Simulator archive, and `SHA256SUMS`. Production store signing is intentionally
+separate from these unsigned or development-signed artifacts.
+
+Release Please derives versions and changelogs from Conventional Commits. It
+opens a release pull request for human review. Merging that pull request creates
+a draft release; the release is published only after data checks and every
+platform build succeeds. See [`RELEASING.md`](RELEASING.md) for versioning and
+signing rules.
 
 ## Run the data checks
 
@@ -67,7 +82,7 @@ python3 -m venv .venv
 
 - `analysis` - recovered database, media inventory, schemas, and examples.
 - `tools` - legacy decoder, media analysis, IR validation, and Ghidra scripts.
-- `kmp-app` - Kotlin Multiplatform desktop application.
+- `kmp-app` - shared vertical slices and native Android, iOS, and desktop hosts.
 - `tests` - data-pipeline and schema conformance tests.
 - `dist` - metadata for reproducible local packages; binaries are not tracked.
 

@@ -9,8 +9,11 @@
 - Экспортировано 582 вопроса, 10 тем, 2685 вариантов и 582 JPEG.
 - Правильные ответы извлечены из битовой маски оригинальной программы.
 - Создана нормализованная база `analysis/database/question-bank.sqlite`.
-- Создано Compose Multiplatform desktop-приложение ElectroScholar в `kmp-app`.
-- Общие модели, SQLDelight-запросы и UI находятся в `commonMain`.
+- Создано Compose Multiplatform-приложение ElectroScholar для Android, iOS,
+  macOS, Linux и Windows в `kmp-app`.
+- Банк задач оформлен самостоятельным vertical slice: модели, SQLDelight,
+  ресурсы и UI находятся в `features/question-bank/commonMain`.
+- Нативные хосты изолированы в `androidApp`, `iosApp` и `desktopApp`.
 - Собран автономный macOS `.app` с собственным JRE и установочный DMG.
 - Зафиксированы версии Gradle, Kotlin, Compose, SQLDelight и транзитивных
   зависимостей.
@@ -25,15 +28,15 @@
 - Проект переименован в ElectroScholar: namespace
   `io.github.ilachev.electroscholar`, bundle ID, база, каталог пользователя и
   сборочные артефакты больше не используют рабочее имя TOE.
-- Добавлен GitHub Actions CI для data-layer и KMP desktop.
+- Добавлен GitHub Actions CI для data-layer, shared JVM, Android и iOS.
 
 ## Проверка
 
 ```bash
 cd kmp-app
-./gradlew :composeApp:desktopTest
-./gradlew :composeApp:createDistributable
-./gradlew :composeApp:packageDmg
+./gradlew :features:question-bank:jvmTest
+./gradlew :androidApp:assembleDebug
+./gradlew :desktopApp:packageDmg
 ```
 
 На момент checkpoint проходят три smoke-теста: структура базы, чтение вопроса и
@@ -48,8 +51,8 @@ cd kmp-app
 ## Артефакт
 
 - Файл: `dist/ElectroScholar-1.0.0.dmg`
-- SHA-256: `630acdb94dacb3cba9e4fe93466f0d45c13d1687c20ebeb14f1113e204b95ed2`
-- Размер: 103742022 байта.
+- SHA-256: `663de788124b28217d3c58cc23c03ab4816fb691a6ed1458fb1f01a9781c1bcd`
+- Размер: 105105991 байт.
 
 DMG пока не подписан Developer ID и не нотарифицирован Apple. Для локальной
 проверки это допустимо; публичный релиз должен добавить подпись, notarization и

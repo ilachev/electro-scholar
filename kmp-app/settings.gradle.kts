@@ -14,4 +14,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "electro-scholar"
-include(":composeApp")
+include(":shared")
+include(":features:question-bank")
+include(":androidApp")
+include(":desktopApp")

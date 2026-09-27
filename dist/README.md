@@ -5,8 +5,8 @@
 SHA-256:
 
 ```text
-630acdb94dacb3cba9e4fe93466f0d45c13d1687c20ebeb14f1113e204b95ed2
+663de788124b28217d3c58cc23c03ab4816fb691a6ed1458fb1f01a9781c1bcd
 ```
 
 DMG не добавляется в Git из-за размера. Он воспроизводится командой
-`./gradlew :composeApp:packageDmg` из каталога `kmp-app`.
+`./gradlew :desktopApp:packageDmg` из каталога `kmp-app`.

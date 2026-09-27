@@ -1,0 +1,181 @@
+name: Package release
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Existing draft release tag to package
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing draft release tag to package
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: package-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-analysis.txt
+      - name: Install analysis dependencies
+        run: python -m pip install -r requirements-analysis.txt
+      - name: Run data and schema tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate Technical IR examples
+        run: >-
+          python tools/validate_technical_ir.py
+          analysis/examples/observation-ir-example.json
+          analysis/examples/circuit-ir-example.json
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - name: Test shared question-bank slice
+        working-directory: kmp-app
+        run: >-
+          ./gradlew checkArchitecture checkVersionConsistency
+          :features:question-bank:jvmTest
+
+  package-desktop:
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            command: ./gradlew :desktopApp:packageDmg
+            artifact: electro-scholar-macos
+            path: kmp-app/desktopApp/build/compose/binaries/main/dmg/*.dmg
+          - os: ubuntu-latest
+            command: ./gradlew :desktopApp:packageDeb
+            artifact: electro-scholar-linux
+            path: kmp-app/desktopApp/build/compose/binaries/main/deb/*.deb
+          - os: windows-latest
+            command: .\gradlew.bat :desktopApp:packageMsi
+            artifact: electro-scholar-windows
+            path: kmp-app/desktopApp/build/compose/binaries/main/msi/*.msi
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - name: Build native desktop package
+        working-directory: kmp-app
+        run: ${{ matrix.command }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.path }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  package-android:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+      - name: Install Android SDK 37
+        run: android sdk install --no-metrics platforms/android-37.0
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - name: Build installable Android preview
+        working-directory: kmp-app
+        run: ./gradlew :androidApp:lintDebug :androidApp:assembleDebug
+      - name: Name Android package
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          version="${RELEASE_TAG#v}"
+          mkdir -p release-assets
+          cp kmp-app/androidApp/build/outputs/apk/debug/androidApp-debug.apk \
+            "release-assets/ElectroScholar-${version}-android-debug.apk"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: electro-scholar-android
+          path: release-assets/*.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  package-ios-simulator:
+    needs: validate
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - name: Build iOS simulator application
+        working-directory: kmp-app/iosApp
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          version="${RELEASE_TAG#v}"
+          xcodebuild -scheme iosApp -configuration Release \
+            -sdk iphonesimulator -arch arm64 \
+            -derivedDataPath build \
+            MARKETING_VERSION="$version" CODE_SIGNING_ALLOWED=NO
+          mkdir -p ../../release-assets
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/Build/Products/Release-iphonesimulator/ElectroScholar.app \
+            "../../release-assets/ElectroScholar-${version}-ios-simulator.zip"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: electro-scholar-ios-simulator
+          path: release-assets/*.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  publish:
+    needs: [package-desktop, package-android, package-ios-simulator]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: electro-scholar-*
+          path: release-assets
+          merge-multiple: true
+      - name: Generate SHA-256 checksums
+        working-directory: release-assets
+        run: sha256sum -- ./* | sort -k2 > SHA256SUMS
+      - name: Attach packages and publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          gh release upload "$RELEASE_TAG" release-assets/* --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --latest

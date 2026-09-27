@@ -18,7 +18,16 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "analysis" / "schemas"
 EXAMPLE_DIR = ROOT / "analysis" / "examples"
 DATABASE = ROOT / "analysis" / "database" / "question-bank.sqlite"
-IMAGE_ROOT = ROOT / "kmp-app" / "composeApp" / "src" / "desktopMain" / "resources" / "images"
+IMAGE_ROOT = (
+    ROOT
+    / "kmp-app"
+    / "features"
+    / "question-bank"
+    / "src"
+    / "commonMain"
+    / "composeResources"
+    / "drawable"
+)
 
 
 def load_json(path: Path) -> dict:
@@ -49,13 +58,13 @@ class TechnicalIrTest(unittest.TestCase):
         self.assertTrue(any("already belongs to net" in message for message in messages))
 
     def test_example_is_bound_to_immutable_source_image(self) -> None:
-        image = IMAGE_ROOT / "TEST2_018.jpg"
+        image = IMAGE_ROOT / "test2_018.jpg"
         digest = hashlib.sha256(image.read_bytes()).hexdigest()
         self.assertEqual(self.observation["source_asset"]["sha256"], digest)
         self.assertEqual(self.circuit["source_asset"]["sha256"], digest)
 
     def test_circuit_overlay_can_be_rendered_for_review(self) -> None:
-        image = IMAGE_ROOT / "TEST2_018.jpg"
+        image = IMAGE_ROOT / "test2_018.jpg"
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "overlay.png"
             render_overlay(self.circuit, image, output)

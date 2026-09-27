@@ -4,10 +4,14 @@ __pycache__/
 test/
 test.rar
 dist/*.dmg
+release-assets/
 analysis/database/images/
 analysis/inspection.log
 kmp-app/.gradle/
 kmp-app/.kotlin/
 kmp-app/.idea/
+kmp-app/local.properties
 kmp-app/**/build/
+kmp-app/**/xcuserdata/
+*.xcuserstate
 *.iml

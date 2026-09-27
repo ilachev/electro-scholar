@@ -1,45 +1,60 @@
-# ElectroScholar KMP application
+# ElectroScholar applications
 
-The first runnable ElectroScholar client is built with Kotlin Multiplatform and
-Compose Multiplatform. Shared models, SQL queries, and UI live in `commonMain`;
-the current desktop implementation lives in `desktopMain`.
+ElectroScholar uses Compose Multiplatform for shared product slices and thin
+native hosts for Android, iOS, macOS, Linux, and Windows.
 
 ## Requirements
 
 - JDK 21 LTS.
-- All other build dependencies are resolved by the pinned Gradle Wrapper.
+- Android SDK 37 for local Android builds.
+- Full Xcode for local iOS builds.
+- All Gradle dependencies are resolved by the checked-in wrapper.
 
-## Run
+## Fast shared-development loop
 
-```bash
-./gradlew :composeApp:run
-```
-
-## Test
+This loop does not require Android SDK or Xcode:
 
 ```bash
-./gradlew :composeApp:desktopTest
+./gradlew checkArchitecture checkVersionConsistency \
+  :features:question-bank:jvmTest :desktopApp:run
 ```
 
-The application ships with a read-only snapshot of the recovered question
-bank. It is copied to `~/.electroscholar/question-bank.sqlite` on startup.
-Future user progress and preferences must use a separate migrated database.
+The question-bank slice contains its UI, SQL contract, database adapters,
+resources, and tests. Changes under `commonMain` are consumed unchanged by all
+hosts.
 
-## Refresh the question bank
+## Platform builds
+
+```bash
+# Android debug APK
+./gradlew :androidApp:assembleDebug
+
+# Desktop app on the current host
+./gradlew :desktopApp:run
+
+# Native desktop installer; choose the task for the current host
+./gradlew :desktopApp:packageDmg
+./gradlew :desktopApp:packageDeb
+./gradlew :desktopApp:packageMsi
+
+# iOS simulator (requires full Xcode)
+cd iosApp
+xcodebuild -scheme iosApp -configuration Debug \
+  -sdk iphonesimulator -arch arm64 CODE_SIGNING_ALLOWED=NO
+```
+
+## Refresh the packaged corpus
 
 ```bash
 cd ..
 python3 tools/inspect_legacy_db.py test --export-database analysis/database
-cd kmp-app
-./gradlew :composeApp:syncQuestionBank
+cp analysis/database/question-bank.sqlite \
+  kmp-app/features/question-bank/src/commonMain/composeResources/files/database/question_bank.sqlite
 ```
 
-## Package for macOS
+The 582 source images already live in the slice's shared Compose resources.
+Refreshing image resources must be a separate deterministic tool; Gradle builds
+do not mutate source files.
 
-```bash
-./gradlew :composeApp:createDistributable
-./gradlew :composeApp:packageDmg
-```
-
-The application bundle is created at
-`composeApp/build/compose/binaries/main/app/ElectroScholar.app`.
+Architecture rules, native adapter boundaries, and the Unix-style tool pipeline
+are documented in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).

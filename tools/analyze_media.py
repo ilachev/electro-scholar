@@ -42,7 +42,11 @@ def image_path(image_root: Path, database_value: str) -> Path:
     direct = image_root / database_value
     if direct.is_file():
         return direct
-    return image_root / Path(database_value).name
+    file_name = Path(database_value).name
+    flat = image_root / file_name
+    if flat.is_file():
+        return flat
+    return image_root / file_name.lower()
 
 
 def histogram_moments(histogram: list[int], total: int) -> tuple[float, float, float]:
