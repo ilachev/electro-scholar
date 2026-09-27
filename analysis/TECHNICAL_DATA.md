@@ -37,7 +37,7 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-analysis.txt
 
 .venv/bin/python tools/analyze_media.py \
-  --database analysis/database/toe.sqlite \
+  --database analysis/database/question-bank.sqlite \
   --image-root kmp-app/composeApp/src/desktopMain/resources/images \
   --output-dir analysis/media \
   --pilot-per-topic 5

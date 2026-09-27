@@ -46,7 +46,7 @@ XOR с `0x20`.
 
 Скрипт `tools/inspect_legacy_db.py` создаёт:
 
-- `analysis/database/toe.sqlite` — нормализованную SQLite-базу;
+- `analysis/database/question-bank.sqlite` — нормализованную SQLite-базу;
 - `analysis/database/questions.tsv` — плоскую таблицу;
 - `analysis/database/questions.json` и `topics.json`;
 - `analysis/database/images/*.jpg`.

@@ -579,7 +579,7 @@ def export_database(
     topics_path.write_text(
         json.dumps(topics_rows, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    sqlite_path = export_dir / "toe.sqlite"
+    sqlite_path = export_dir / "question-bank.sqlite"
     export_sqlite(sqlite_path, databases)
     print(
         f"\nexported database: {tsv_path}, {json_path}, {topics_path}, and {sqlite_path} "

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "toe-reborn"
+rootProject.name = "electro-scholar"
 include(":composeApp")

@@ -1,4 +1,4 @@
-package ru.toe.app
+package io.github.ilachev.electroscholar.app
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -42,13 +42,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ru.toe.data.Answer
-import ru.toe.data.QuestionDetail
-import ru.toe.data.QuestionRepository
-import ru.toe.data.QuestionSummary
-import ru.toe.data.Source
-import ru.toe.data.Topic
-import ru.toe.data.createDatabase
+import io.github.ilachev.electroscholar.data.Answer
+import io.github.ilachev.electroscholar.data.QuestionDetail
+import io.github.ilachev.electroscholar.data.QuestionRepository
+import io.github.ilachev.electroscholar.data.QuestionSummary
+import io.github.ilachev.electroscholar.data.Source
+import io.github.ilachev.electroscholar.data.Topic
+import io.github.ilachev.electroscholar.data.createDatabase
 
 private val Ink = Color(0xFF202522)
 private val Muted = Color(0xFF68716C)
@@ -134,12 +134,12 @@ private fun AppHeader() {
             modifier = Modifier.size(36.dp).clip(RoundedCornerShape(6.dp)).background(Accent),
             contentAlignment = Alignment.Center,
         ) {
-            Text("T", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 19.sp)
+            Text("E", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 19.sp)
         }
         Spacer(Modifier.width(12.dp))
         Column {
-            Text("ТОЭ", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Ink)
-            Text("База учебных вопросов", fontSize = 12.sp, color = Muted)
+            Text("ElectroScholar", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+            Text("Учебная электротехника", fontSize = 12.sp, color = Muted)
         }
         Spacer(Modifier.weight(1f))
         Text("582 вопроса", fontSize = 13.sp, color = Muted)

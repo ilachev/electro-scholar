@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://toe-project.local/schemas/observation-ir-v1.schema.json",
+  "$id": "urn:electroscholar:schema:observation-ir:v1",
   "title": "Technical image Observation IR v1",
   "description": "Versioned, reviewable observations and hypotheses extracted from one immutable source image.",
   "type": "object",

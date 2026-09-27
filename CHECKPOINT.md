@@ -8,8 +8,8 @@
 - Восстановлен формат `TEST1.DAT` и `TEST2.DAT`.
 - Экспортировано 582 вопроса, 10 тем, 2685 вариантов и 582 JPEG.
 - Правильные ответы извлечены из битовой маски оригинальной программы.
-- Создана нормализованная база `analysis/database/toe.sqlite`.
-- Создано Compose Multiplatform desktop-приложение в `kmp-app`.
+- Создана нормализованная база `analysis/database/question-bank.sqlite`.
+- Создано Compose Multiplatform desktop-приложение ElectroScholar в `kmp-app`.
 - Общие модели, SQLDelight-запросы и UI находятся в `commonMain`.
 - Собран автономный macOS `.app` с собственным JRE и установочный DMG.
 - Зафиксированы версии Gradle, Kotlin, Compose, SQLDelight и транзитивных
@@ -22,6 +22,10 @@
   layout и двух состояний ключа.
 - Добавлены валидатор ссылочной целостности, визуальный overlay-renderer и семь
   Python-тестов.
+- Проект переименован в ElectroScholar: namespace
+  `io.github.ilachev.electroscholar`, bundle ID, база, каталог пользователя и
+  сборочные артефакты больше не используют рабочее имя TOE.
+- Добавлен GitHub Actions CI для data-layer и KMP desktop.
 
 ## Проверка
 
@@ -43,9 +47,9 @@ cd kmp-app
 
 ## Артефакт
 
-- Файл: `dist/TOE-1.0.0.dmg`
-- SHA-256: `cc6c2b49ee857fc28970316af2f03ff511b3710bc601b815e4a529cba120f4c2`
-- Размер: около 99 MB.
+- Файл: `dist/ElectroScholar-1.0.0.dmg`
+- SHA-256: `630acdb94dacb3cba9e4fe93466f0d45c13d1687c20ebeb14f1113e204b95ed2`
+- Размер: 103742022 байта.
 
 DMG пока не подписан Developer ID и не нотарифицирован Apple. Для локальной
 проверки это допустимо; публичный релиз должен добавить подпись, notarization и

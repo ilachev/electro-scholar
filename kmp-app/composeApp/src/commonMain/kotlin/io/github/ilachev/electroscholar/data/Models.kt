@@ -1,4 +1,4 @@
-package ru.toe.data
+package io.github.ilachev.electroscholar.data
 
 data class Source(
     val id: Long,

@@ -1,4 +1,4 @@
-package ru.toe.data
+package io.github.ilachev.electroscholar.data
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

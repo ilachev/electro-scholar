@@ -17,7 +17,7 @@ from tools.validate_technical_ir import schema_diagnostics, semantic_diagnostics
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "analysis" / "schemas"
 EXAMPLE_DIR = ROOT / "analysis" / "examples"
-DATABASE = ROOT / "analysis" / "database" / "toe.sqlite"
+DATABASE = ROOT / "analysis" / "database" / "question-bank.sqlite"
 IMAGE_ROOT = ROOT / "kmp-app" / "composeApp" / "src" / "desktopMain" / "resources" / "images"
 
 

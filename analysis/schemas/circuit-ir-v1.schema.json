@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://toe-project.local/schemas/circuit-ir-v1.schema.json",
+  "$id": "urn:electroscholar:schema:circuit-ir:v1",
   "title": "Electrical Circuit IR v1",
   "description": "Canonical circuit topology with an optional, separate drawing layout and immutable provenance.",
   "type": "object",

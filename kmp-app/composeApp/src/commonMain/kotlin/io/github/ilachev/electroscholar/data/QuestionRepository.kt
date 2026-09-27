@@ -1,6 +1,6 @@
-package ru.toe.data
+package io.github.ilachev.electroscholar.data
 
-class QuestionRepository(private val database: ToeDatabase) {
+class QuestionRepository(private val database: QuestionBankDatabase) {
     fun sources(): List<Source> =
         database.databaseQueries.selectSources { id, fileName, questionCount ->
             Source(id, fileName, questionCount)

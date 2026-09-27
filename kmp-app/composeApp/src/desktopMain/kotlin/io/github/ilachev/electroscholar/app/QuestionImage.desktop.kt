@@ -1,4 +1,4 @@
-package ru.toe.app
+package io.github.ilachev.electroscholar.app
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

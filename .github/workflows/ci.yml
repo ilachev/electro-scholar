@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  technical-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install analysis dependencies
+        run: python -m pip install -r requirements-analysis.txt
+      - name: Run data and schema tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate Technical IR examples
+        run: >-
+          python tools/validate_technical_ir.py
+          analysis/examples/observation-ir-example.json
+          analysis/examples/circuit-ir-example.json
+
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Run desktop tests
+        working-directory: kmp-app
+        run: ./gradlew :composeApp:desktopTest

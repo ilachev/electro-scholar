@@ -1,31 +1,31 @@
-# ТОЭ KMP
+# ElectroScholar KMP application
 
-Первый рабочий инкремент новой версии программы «ТЕСТ» на Kotlin Multiplatform
-и Compose Multiplatform. Общая логика и SQL-запросы находятся в `commonMain`,
-desktop-реализация для macOS — в `desktopMain`.
+The first runnable ElectroScholar client is built with Kotlin Multiplatform and
+Compose Multiplatform. Shared models, SQL queries, and UI live in `commonMain`;
+the current desktop implementation lives in `desktopMain`.
 
-## Требования
+## Requirements
 
 - JDK 21 LTS.
-- Остальные инструменты скачивает зафиксированный Gradle Wrapper.
+- All other build dependencies are resolved by the pinned Gradle Wrapper.
 
-## Запуск
+## Run
 
 ```bash
 ./gradlew :composeApp:run
 ```
 
-## Проверка
+## Test
 
 ```bash
 ./gradlew :composeApp:desktopTest
 ```
 
-Приложение использует встроенный снимок восстановленной SQLite-базы. При запуске
-read-only банк вопросов обновляется в `~/.toe-reborn/toe.sqlite`; пользовательские
-данные в дальнейшем будут храниться отдельно.
+The application ships with a read-only snapshot of the recovered question
+bank. It is copied to `~/.electroscholar/question-bank.sqlite` on startup.
+Future user progress and preferences must use a separate migrated database.
 
-## Обновление банка вопросов
+## Refresh the question bank
 
 ```bash
 cd ..
@@ -34,10 +34,12 @@ cd kmp-app
 ./gradlew :composeApp:syncQuestionBank
 ```
 
-Готовый macOS `.app` создаётся командой:
+## Package for macOS
 
 ```bash
 ./gradlew :composeApp:createDistributable
+./gradlew :composeApp:packageDmg
 ```
 
-Результат: `composeApp/build/compose/binaries/main/app/TOE.app`.
+The application bundle is created at
+`composeApp/build/compose/binaries/main/app/ElectroScholar.app`.

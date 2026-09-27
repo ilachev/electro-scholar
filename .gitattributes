@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.dmg binary
+*.jar binary
+*.jpg binary
+*.png binary
+*.sqlite binary

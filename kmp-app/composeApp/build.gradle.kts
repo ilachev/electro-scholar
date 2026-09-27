@@ -35,7 +35,7 @@ val syncQuestionBank = tasks.register<Sync>("syncQuestionBank") {
     group = "content"
     description = "Copies the latest reverse-engineered SQLite database and images into app resources."
     val exportedDatabase = rootProject.layout.projectDirectory.dir("../analysis/database")
-    from(exportedDatabase.file("toe.sqlite")) {
+    from(exportedDatabase.file("question-bank.sqlite")) {
         into("database")
     }
     from(exportedDatabase.dir("images")) {
@@ -51,24 +51,24 @@ tasks.named("desktopProcessResources") {
 
 sqldelight {
     databases {
-        create("ToeDatabase") {
-            packageName.set("ru.toe.data")
+        create("QuestionBankDatabase") {
+            packageName.set("io.github.ilachev.electroscholar.data")
         }
     }
 }
 
 compose.desktop {
     application {
-        mainClass = "ru.toe.app.MainKt"
+        mainClass = "io.github.ilachev.electroscholar.app.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
             modules("java.sql")
-            packageName = "TOE"
+            packageName = "ElectroScholar"
             packageVersion = "1.0.0"
-            description = "Современная версия учебной программы ТЕСТ"
+            description = "Electrical engineering learning and circuit analysis"
             macOS {
-                bundleID = "ru.toe.reborn"
+                bundleID = "io.github.ilachev.electroscholar"
             }
         }
     }
