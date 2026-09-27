@@ -9,7 +9,7 @@ compose-material3 = "1.9.0"
 compose = "1.12.1"
 coroutines = "1.11.0"
 kotlin = "2.4.20"
-sqldelight = "2.3.2"
+sqldelight = "2.4.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
