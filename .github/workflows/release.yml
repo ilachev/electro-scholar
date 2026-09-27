@@ -5,6 +5,7 @@ on:
     branches: [main]
 
 permissions:
+  actions: write
   contents: write
   issues: write
   pull-requests: write
@@ -24,6 +25,15 @@ jobs:
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dispatch CI for the release PR
+        if: steps.release.outputs.prs_created == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PR: ${{ steps.release.outputs.pr }}
+        run: |
+          release_branch=$(printf '%s' "$RELEASE_PR" | jq -er '.headBranchName')
+          gh workflow run ci.yml --ref "$release_branch"
 
   package-release:
     needs: release-please
