@@ -1,0 +1,433 @@
+{
+  "schema_version": "question-ir/v1",
+  "document_id": "legacy-test:test2:018",
+  "source_record": {
+    "corpus": "legacy-test",
+    "source_file": "TEST2.DAT",
+    "source_index": 18,
+    "question_number": 19,
+    "question_label": "19"
+  },
+  "assets": [
+    {
+      "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+      "role": "source",
+      "sha256": "dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+      "mime_type": "image/jpeg",
+      "width": 567,
+      "height": 237,
+      "uri": "images/TEST2_018.jpg"
+    }
+  ],
+  "producers": [
+    {
+      "id": "producer:legacy-import",
+      "kind": "import",
+      "name": "inspect_legacy_db.py",
+      "version": "1"
+    },
+    {
+      "id": "producer:codex-transcription",
+      "kind": "model",
+      "name": "OpenAI Codex",
+      "version": "2026-09-29"
+    }
+  ],
+  "prompt": [
+    {
+      "id": "prompt:text:1",
+      "kind": "text",
+      "text": "Дано: ",
+      "language": "ru",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+          "bounds": { "x": 88, "y": 0, "width": 447, "height": 83 }
+        }
+      ]
+    },
+    {
+      "id": "prompt:formula:u0",
+      "kind": "formula",
+      "latex": "U_0 = 120\\,\\text{В}",
+      "plain_text": "U₀ = 120 В",
+      "display": "inline",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+          "bounds": { "x": 88, "y": 0, "width": 447, "height": 83 }
+        }
+      ]
+    },
+    {
+      "id": "prompt:text:2",
+      "kind": "text",
+      "text": ", ",
+      "language": "ru",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd"
+        }
+      ]
+    },
+    {
+      "id": "prompt:formula:r1",
+      "kind": "formula",
+      "latex": "R_1 = 30\\,\\Omega",
+      "plain_text": "R₁ = 30 Ом",
+      "display": "inline",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd"
+        }
+      ]
+    },
+    {
+      "id": "prompt:text:3",
+      "kind": "text",
+      "text": ", ",
+      "language": "ru",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd"
+        }
+      ]
+    },
+    {
+      "id": "prompt:formula:r2",
+      "kind": "formula",
+      "latex": "R_2 = 60\\,\\Omega",
+      "plain_text": "R₂ = 60 Ом",
+      "display": "inline",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd"
+        }
+      ]
+    },
+    {
+      "id": "prompt:text:4",
+      "kind": "text",
+      "text": ". Если заданную цепь замкнуть эквивалентным генератором (относительно зажимов ",
+      "language": "ru",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd"
+        }
+      ]
+    },
+    {
+      "id": "prompt:formula:terminals",
+      "kind": "formula",
+      "latex": "a-b",
+      "plain_text": "a-b",
+      "display": "inline",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd"
+        }
+      ]
+    },
+    {
+      "id": "prompt:text:5",
+      "kind": "text",
+      "text": "), то ЭДС этого генератора будет равна:",
+      "language": "ru",
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "source_asset",
+          "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd"
+        }
+      ]
+    },
+    {
+      "id": "prompt:circuit:1",
+      "kind": "circuit",
+      "document_ref": "analysis/examples/circuit-ir-example.json",
+      "operating_state_id": "state:open",
+      "fallback_asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+      "fallback_bounds": { "x": 350, "y": 70, "width": 185, "height": 165 },
+      "review_status": "needs_review",
+      "producer_ref": "producer:codex-transcription",
+      "evidence": [
+        {
+          "kind": "observation",
+          "document_ref": "analysis/examples/observation-ir-example.json",
+          "observation_refs": ["region:circuit:1"]
+        },
+        {
+          "kind": "derived_document",
+          "document_ref": "analysis/examples/circuit-ir-example.json"
+        }
+      ]
+    }
+  ],
+  "answers": [
+    {
+      "id": "answer:1",
+      "position": 1,
+      "review_status": "needs_review",
+      "content": [
+        {
+          "id": "answer:1:formula",
+          "kind": "formula",
+          "latex": "120\\,\\text{В}",
+          "plain_text": "120 В",
+          "display": "inline",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            {
+              "kind": "source_asset",
+              "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+              "bounds": { "x": 10, "y": 116, "width": 211, "height": 49 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "answer:2",
+      "position": 2,
+      "review_status": "needs_review",
+      "content": [
+        {
+          "id": "answer:2:formula",
+          "kind": "formula",
+          "latex": "60\\,\\text{В}",
+          "plain_text": "60 В",
+          "display": "inline",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            {
+              "kind": "source_asset",
+              "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+              "bounds": { "x": 10, "y": 116, "width": 211, "height": 49 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "answer:3",
+      "position": 3,
+      "review_status": "needs_review",
+      "content": [
+        {
+          "id": "answer:3:formula",
+          "kind": "formula",
+          "latex": "40\\,\\text{В}",
+          "plain_text": "40 В",
+          "display": "inline",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            {
+              "kind": "source_asset",
+              "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+              "bounds": { "x": 10, "y": 116, "width": 211, "height": 49 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "answer:4",
+      "position": 4,
+      "review_status": "needs_review",
+      "content": [
+        {
+          "id": "answer:4:formula",
+          "kind": "formula",
+          "latex": "20\\,\\text{В}",
+          "plain_text": "20 В",
+          "display": "inline",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            {
+              "kind": "source_asset",
+              "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+              "bounds": { "x": 10, "y": 116, "width": 211, "height": 49 }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "answer:5",
+      "position": 5,
+      "review_status": "needs_review",
+      "content": [
+        {
+          "id": "answer:5:text",
+          "kind": "text",
+          "text": "Нулю.",
+          "language": "ru",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            {
+              "kind": "source_asset",
+              "asset_id": "sha256:dfe141c362733b402a83bbad608414ec8ae7bb71d67414146e6e57f4658807fd",
+              "bounds": { "x": 10, "y": 116, "width": 211, "height": 49 }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint:1",
+      "position": 1,
+      "review_status": "needs_review",
+      "content": [
+        {
+          "id": "hint:1:text:1",
+          "kind": "text",
+          "text": "ЭДС генератора равна напряжению ",
+          "language": "ru",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            { "kind": "legacy_field", "field": "hint_1" }
+          ]
+        },
+        {
+          "id": "hint:1:formula:1",
+          "kind": "formula",
+          "latex": "U_{AB}",
+          "plain_text": "U_AB",
+          "display": "inline",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            { "kind": "legacy_field", "field": "hint_1" }
+          ]
+        },
+        {
+          "id": "hint:1:text:2",
+          "kind": "text",
+          "text": " на разомкнутых выходных зажимах цепи.",
+          "language": "ru",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            { "kind": "legacy_field", "field": "hint_1" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hint:2",
+      "position": 2,
+      "review_status": "needs_review",
+      "content": [
+        {
+          "id": "hint:2:text:1",
+          "kind": "text",
+          "text": "Целесообразно составить уравнение для контура цепи, вычислить ток и через него определить напряжение ",
+          "language": "ru",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            { "kind": "legacy_field", "field": "hint_2" }
+          ]
+        },
+        {
+          "id": "hint:2:formula:1",
+          "kind": "formula",
+          "latex": "U_{AB}",
+          "plain_text": "U_AB",
+          "display": "inline",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            { "kind": "legacy_field", "field": "hint_2" }
+          ]
+        },
+        {
+          "id": "hint:2:text:2",
+          "kind": "text",
+          "text": " на зажимах цепи.",
+          "language": "ru",
+          "review_status": "needs_review",
+          "producer_ref": "producer:codex-transcription",
+          "evidence": [
+            { "kind": "legacy_field", "field": "hint_2" }
+          ]
+        }
+      ]
+    }
+  ],
+  "answer_key": {
+    "id": "answer-key",
+    "status": "extracted",
+    "positions": [5],
+    "evidence": [
+      { "kind": "legacy_field", "field": "answer_key" }
+    ],
+    "note": "Extracted from the original correct-answer bit mask; human confirmation is pending."
+  },
+  "verification": {
+    "status": "in_review",
+    "reviewers": [],
+    "checks": [
+      {
+        "id": "check:source-match",
+        "kind": "source_match",
+        "status": "passed",
+        "method": "SHA-256 matched against the media inventory"
+      },
+      {
+        "id": "check:text-transcription",
+        "kind": "text_transcription",
+        "status": "pending"
+      },
+      {
+        "id": "check:formula-render",
+        "kind": "formula_render",
+        "status": "pending"
+      },
+      {
+        "id": "check:circuit-topology",
+        "kind": "circuit_topology",
+        "status": "pending"
+      },
+      {
+        "id": "check:answer-key",
+        "kind": "answer_key",
+        "status": "pending"
+      }
+    ]
+  },
+  "review_events": []
+}

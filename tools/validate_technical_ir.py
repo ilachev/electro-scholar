@@ -15,6 +15,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 SCHEMA_FILES = {
     "observation-ir/v1": "observation-ir-v1.schema.json",
     "circuit-ir/v1": "circuit-ir-v1.schema.json",
+    "question-ir/v1": "question-ir-v1.schema.json",
 }
 
 
@@ -150,6 +151,331 @@ def known_observation_ids(document: dict[str, Any] | None) -> set[str] | None:
         for item in document.get(key, [])
         if isinstance(item.get("id"), str)
     }
+
+
+def question_content_nodes(
+    document: dict[str, Any],
+) -> Iterable[tuple[str, dict[str, Any]]]:
+    for index, node in enumerate(document.get("prompt", [])):
+        yield f"$.prompt[{index}]", node
+    for answer_index, answer in enumerate(document.get("answers", [])):
+        for node_index, node in enumerate(answer.get("content", [])):
+            yield f"$.answers[{answer_index}].content[{node_index}]", node
+    for hint_index, hint in enumerate(document.get("hints", [])):
+        for node_index, node in enumerate(hint.get("content", [])):
+            yield f"$.hints[{hint_index}].content[{node_index}]", node
+
+
+def bounds_fit_asset(bounds: dict[str, Any], asset: dict[str, Any]) -> bool:
+    width = asset.get("width")
+    height = asset.get("height")
+    if not isinstance(width, int) or not isinstance(height, int):
+        return True
+    return (
+        bounds.get("x", 0) + bounds.get("width", 0) <= width
+        and bounds.get("y", 0) + bounds.get("height", 0) <= height
+    )
+
+
+def question_diagnostics(
+    document: dict[str, Any],
+    referenced_documents: dict[str, dict[str, Any]] | None = None,
+) -> list[Diagnostic]:
+    assets = document.get("assets", [])
+    producers = document.get("producers", [])
+    answers = document.get("answers", [])
+    hints = document.get("hints", [])
+    checks = document.get("verification", {}).get("checks", [])
+    reviews = document.get("review_events", [])
+    content = list(question_content_nodes(document))
+
+    duplicate_collections: list[tuple[str, list[dict[str, Any]]]] = [
+        ("assets", assets),
+        ("producers", producers),
+        ("answers", answers),
+        ("hints", hints),
+        ("verification.checks", checks),
+        ("review_events", reviews),
+    ]
+    duplicate_collections.extend((path.removeprefix("$."), [node]) for path, node in content)
+    diagnostics = duplicate_id_diagnostics(duplicate_collections)
+
+    asset_by_id: dict[Any, dict[str, Any]] = {}
+    for index, asset in enumerate(assets):
+        asset_id = asset.get("asset_id")
+        if asset_id in asset_by_id:
+            diagnostics.append(
+                Diagnostic(
+                    "error",
+                    f"$.assets[{index}].asset_id",
+                    f"Duplicate asset_id {asset_id!r}",
+                )
+            )
+        asset_by_id[asset_id] = asset
+        sha256 = asset.get("sha256")
+        if isinstance(asset_id, str) and asset_id.startswith("sha256:"):
+            if asset_id != f"sha256:{sha256}":
+                diagnostics.append(
+                    Diagnostic(
+                        "error",
+                        f"$.assets[{index}].asset_id",
+                        "SHA-256 asset_id does not match the declared digest",
+                    )
+                )
+    producer_ids = {item.get("id") for item in producers}
+    answer_positions: dict[int, int] = {}
+    hint_positions: dict[int, int] = {}
+
+    for index, answer in enumerate(answers):
+        position = answer.get("position")
+        if isinstance(position, int):
+            previous = answer_positions.get(position)
+            if previous is not None:
+                diagnostics.append(
+                    Diagnostic(
+                        "error",
+                        f"$.answers[{index}].position",
+                        f"Answer position {position} is already used at $.answers[{previous}]",
+                    )
+                )
+            answer_positions[position] = index
+
+    for index, hint in enumerate(hints):
+        position = hint.get("position")
+        if isinstance(position, int):
+            previous = hint_positions.get(position)
+            if previous is not None:
+                diagnostics.append(
+                    Diagnostic(
+                        "error",
+                        f"$.hints[{index}].position",
+                        f"Hint position {position} is already used at $.hints[{previous}]",
+                    )
+                )
+            hint_positions[position] = index
+
+    def validate_evidence(path: str, evidence_items: list[dict[str, Any]]) -> None:
+        for index, evidence in enumerate(evidence_items):
+            evidence_path = f"{path}.evidence[{index}]"
+            kind = evidence.get("kind")
+            if kind == "source_asset":
+                asset = asset_by_id.get(evidence.get("asset_id"))
+                if asset is None:
+                    diagnostics.append(
+                        Diagnostic(
+                            "error",
+                            f"{evidence_path}.asset_id",
+                            f"Unknown asset {evidence.get('asset_id')!r}",
+                        )
+                    )
+                elif "bounds" in evidence and not bounds_fit_asset(evidence["bounds"], asset):
+                    diagnostics.append(
+                        Diagnostic("error", f"{evidence_path}.bounds", "Bounds exceed asset dimensions")
+                    )
+            elif kind == "observation" and referenced_documents is not None:
+                reference = evidence.get("document_ref")
+                observation = referenced_documents.get(reference)
+                if observation is None:
+                    diagnostics.append(
+                        Diagnostic("error", f"{evidence_path}.document_ref", f"Document {reference!r} was not loaded")
+                    )
+                elif observation.get("schema_version") != "observation-ir/v1":
+                    diagnostics.append(
+                        Diagnostic(
+                            "error",
+                            f"{evidence_path}.document_ref",
+                            "Referenced document is not Observation IR",
+                        )
+                    )
+                else:
+                    known_ids = known_observation_ids(observation) or set()
+                    for ref_index, observation_ref in enumerate(evidence.get("observation_refs", [])):
+                        if observation_ref not in known_ids:
+                            diagnostics.append(
+                                Diagnostic(
+                                    "error",
+                                    f"{evidence_path}.observation_refs[{ref_index}]",
+                                    f"Unknown observation reference {observation_ref!r}",
+                                )
+                            )
+            elif kind == "derived_document" and referenced_documents is not None:
+                reference = evidence.get("document_ref")
+                if reference not in referenced_documents:
+                    diagnostics.append(
+                        Diagnostic("error", f"{evidence_path}.document_ref", f"Document {reference!r} was not loaded")
+                    )
+
+    for path, node in content:
+        if node.get("producer_ref") not in producer_ids:
+            diagnostics.append(
+                Diagnostic(
+                    "error",
+                    f"{path}.producer_ref",
+                    f"Unknown producer {node.get('producer_ref')!r}",
+                )
+            )
+        validate_evidence(path, node.get("evidence", []))
+
+        referenced_asset_fields = [
+            field
+            for field in ("asset_id", "fallback_asset_id", "rendered_asset_id")
+            if field in node
+        ]
+        for field in referenced_asset_fields:
+            if node.get(field) not in asset_by_id:
+                diagnostics.append(
+                    Diagnostic("error", f"{path}.{field}", f"Unknown asset {node.get(field)!r}")
+                )
+        if "fallback_bounds" in node:
+            fallback_asset = asset_by_id.get(node.get("fallback_asset_id"))
+            if fallback_asset is not None and not bounds_fit_asset(node["fallback_bounds"], fallback_asset):
+                diagnostics.append(
+                    Diagnostic("error", f"{path}.fallback_bounds", "Bounds exceed asset dimensions")
+                )
+        if "bounds" in node and node.get("kind") == "asset_fragment":
+            fragment_asset = asset_by_id.get(node.get("asset_id"))
+            if fragment_asset is not None and not bounds_fit_asset(node["bounds"], fragment_asset):
+                diagnostics.append(
+                    Diagnostic("error", f"{path}.bounds", "Bounds exceed asset dimensions")
+                )
+
+        document_ref = node.get("document_ref")
+        if document_ref is not None and referenced_documents is not None:
+            referenced = referenced_documents.get(document_ref)
+            if referenced is None:
+                diagnostics.append(
+                    Diagnostic("error", f"{path}.document_ref", f"Document {document_ref!r} was not loaded")
+                )
+            elif node.get("kind") == "circuit":
+                if referenced.get("schema_version") != "circuit-ir/v1":
+                    diagnostics.append(
+                        Diagnostic("error", f"{path}.document_ref", "Referenced document is not Circuit IR")
+                    )
+                else:
+                    if referenced.get("document_id") != document.get("document_id"):
+                        diagnostics.append(
+                            Diagnostic("error", f"{path}.document_ref", "Circuit document_id does not match question")
+                        )
+                    state_id = node.get("operating_state_id")
+                    known_states = {item.get("id") for item in referenced.get("operating_states", [])}
+                    if state_id is not None and state_id not in known_states:
+                        diagnostics.append(
+                            Diagnostic("error", f"{path}.operating_state_id", f"Unknown circuit state {state_id!r}")
+                        )
+                    source_hash = referenced.get("source_asset", {}).get("sha256")
+                    source_hashes = {
+                        item.get("sha256") for item in assets if item.get("role") == "source"
+                    }
+                    if source_hash not in source_hashes:
+                        diagnostics.append(
+                            Diagnostic(
+                                "error",
+                                f"{path}.document_ref",
+                                "Circuit source hash does not match question assets",
+                            )
+                        )
+
+    answer_key = document.get("answer_key", {})
+    validate_evidence("$.answer_key", answer_key.get("evidence", []))
+    for index, position in enumerate(answer_key.get("positions", [])):
+        if position not in answer_positions:
+            diagnostics.append(
+                Diagnostic(
+                    "error",
+                    f"$.answer_key.positions[{index}]",
+                    f"Unknown answer position {position!r}",
+                )
+            )
+
+    known_targets = {
+        document.get("document_id"),
+        answer_key.get("id"),
+        *(item.get("id") for item in answers),
+        *(item.get("id") for item in hints),
+        *(node.get("id") for _, node in content),
+        *(item.get("id") for item in checks),
+    }
+    for index, review in enumerate(reviews):
+        if review.get("target_ref") not in known_targets:
+            diagnostics.append(
+                Diagnostic(
+                    "error",
+                    f"$.review_events[{index}].target_ref",
+                    f"Unknown review target {review.get('target_ref')!r}",
+                )
+            )
+
+    if document.get("verification", {}).get("status") == "verified":
+        verification = document["verification"]
+        if not verification.get("reviewers"):
+            diagnostics.append(
+                Diagnostic(
+                    "error",
+                    "$.verification.reviewers",
+                    "Verified question requires at least one human reviewer",
+                )
+            )
+        if answer_key.get("status") != "verified":
+            diagnostics.append(
+                Diagnostic("error", "$.answer_key.status", "Verified question requires a verified answer key")
+            )
+        reviewable = [*answers, *hints, *(node for _, node in content)]
+        for item in reviewable:
+            if item.get("review_status") not in {"accepted", "corrected"}:
+                diagnostics.append(
+                    Diagnostic(
+                        "error",
+                        f"review:{item.get('id')}",
+                        "Verified question contains content that was not accepted or corrected",
+                    )
+                )
+        check_status_by_kind = {check.get("kind"): check.get("status") for check in checks}
+        required_check_kinds = {"source_match", "answer_key"}
+        node_kinds = {node.get("kind") for _, node in content}
+        if "text" in node_kinds:
+            required_check_kinds.add("text_transcription")
+        if "formula" in node_kinds:
+            required_check_kinds.add("formula_render")
+        if "circuit" in node_kinds:
+            required_check_kinds.add("circuit_topology")
+        for kind in sorted(required_check_kinds):
+            if check_status_by_kind.get(kind) not in {"passed", "waived"}:
+                diagnostics.append(
+                    Diagnostic(
+                        "error",
+                        "$.verification.checks",
+                        f"Verified question requires a completed {kind!r} check",
+                    )
+                )
+        for check in checks:
+            if check.get("status") not in {"passed", "waived"}:
+                diagnostics.append(
+                    Diagnostic(
+                        "error",
+                        f"verification:{check.get('id')}",
+                        "Verified question contains an incomplete verification check",
+                    )
+                )
+        for path, node in content:
+            if node.get("kind") == "formula" and "rendered_asset_id" not in node:
+                diagnostics.append(
+                    Diagnostic(
+                        "error",
+                        f"{path}.rendered_asset_id",
+                        "Verified formula requires a preserved render-back artifact",
+                    )
+                )
+            if node.get("kind") == "circuit" and referenced_documents is not None:
+                circuit = referenced_documents.get(node.get("document_ref"))
+                if circuit is not None and circuit.get("verification", {}).get("status") != "human_verified":
+                    diagnostics.append(
+                        Diagnostic(
+                            "error",
+                            f"{path}.document_ref",
+                            "Verified question requires a human-verified Circuit IR",
+                        )
+                    )
+    return diagnostics
 
 
 def circuit_diagnostics(
@@ -380,19 +706,25 @@ def circuit_diagnostics(
 
 
 def semantic_diagnostics(
-    document: dict[str, Any], observation: dict[str, Any] | None = None
+    document: dict[str, Any],
+    observation: dict[str, Any] | None = None,
+    referenced_documents: dict[str, dict[str, Any]] | None = None,
 ) -> list[Diagnostic]:
     version = document.get("schema_version")
     if version == "observation-ir/v1":
         return observation_diagnostics(document)
     if version == "circuit-ir/v1":
         return circuit_diagnostics(document, observation)
+    if version == "question-ir/v1":
+        return question_diagnostics(document, referenced_documents)
     return []
 
 
 def main() -> None:
     project_root = Path(__file__).resolve().parents[1]
-    parser = argparse.ArgumentParser(description="Validate Observation IR and Circuit IR JSON files.")
+    parser = argparse.ArgumentParser(
+        description="Validate Question, Observation, and Circuit IR JSON files."
+    )
     parser.add_argument("documents", type=Path, nargs="+")
     parser.add_argument(
         "--schema-dir",
@@ -415,13 +747,23 @@ def main() -> None:
         for _, document in loaded
         if document.get("schema_version") == "observation-ir/v1"
     }
+    referenced_documents: dict[str, dict[str, Any]] = {}
+    for path, document in loaded:
+        referenced_documents[str(path)] = document
+        referenced_documents[path.as_posix()] = document
+        try:
+            referenced_documents[path.resolve().relative_to(project_root).as_posix()] = document
+        except ValueError:
+            pass
     error_count = int(failed_to_load)
     warning_count = 0
     for path, document in loaded:
         diagnostics = schema_diagnostics(document, args.schema_dir)
         if not diagnostics:
             observation = observations.get(document.get("document_id"))
-            diagnostics.extend(semantic_diagnostics(document, observation))
+            diagnostics.extend(
+                semantic_diagnostics(document, observation, referenced_documents)
+            )
         for diagnostic in diagnostics:
             print(f"{diagnostic.level.upper()} {path}:{diagnostic.path}: {diagnostic.message}")
             if diagnostic.level == "error":

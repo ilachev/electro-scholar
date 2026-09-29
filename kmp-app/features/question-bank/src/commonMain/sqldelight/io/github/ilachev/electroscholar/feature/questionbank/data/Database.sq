@@ -47,6 +47,56 @@ CREATE TABLE metadata (
     value TEXT NOT NULL
 );
 
+CREATE TABLE question_documents (
+    question_id INTEGER NOT NULL PRIMARY KEY REFERENCES questions(id) ON DELETE CASCADE,
+    document_id TEXT NOT NULL UNIQUE,
+    schema_version TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    prompt_text TEXT NOT NULL,
+    search_text TEXT NOT NULL,
+    search_text_folded TEXT NOT NULL,
+    document_json TEXT NOT NULL
+);
+
+CREATE TABLE question_content_nodes (
+    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    node_id TEXT NOT NULL,
+    container_kind TEXT NOT NULL CHECK(container_kind IN ('prompt', 'answer', 'hint')),
+    container_position INTEGER NOT NULL,
+    node_position INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    plain_text TEXT,
+    latex TEXT,
+    document_ref TEXT,
+    asset_id TEXT,
+    review_status TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    PRIMARY KEY(question_id, node_id),
+    UNIQUE(question_id, container_kind, container_position, node_position)
+);
+
+CREATE TABLE question_answer_content (
+    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    answer_position INTEGER NOT NULL,
+    plain_text TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    PRIMARY KEY(question_id, answer_position)
+);
+
+CREATE TABLE question_hint_content (
+    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    hint_position INTEGER NOT NULL,
+    plain_text TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    PRIMARY KEY(question_id, hint_position)
+);
+
+CREATE INDEX question_documents_review_idx
+ON question_documents(review_status, question_id);
+
+CREATE INDEX question_content_nodes_container_idx
+ON question_content_nodes(question_id, container_kind, container_position, node_position);
+
 selectSources:
 SELECT id, file_name, question_count
 FROM sources
@@ -59,28 +109,78 @@ WHERE source_id = :sourceId
 ORDER BY position;
 
 selectQuestionsForTopic:
-SELECT id, source_index, question_number, text, image_file,
-       correct_answer_mask, extraction_warnings
-FROM questions
-WHERE topic_id = :topicId
+SELECT q.id, q.source_index, q.question_number,
+       COALESCE(
+         CASE WHEN qd.review_status = 'verified' THEN qd.prompt_text END,
+         q.text
+       ) AS display_text,
+       q.image_file, q.correct_answer_mask, q.extraction_warnings,
+       qd.review_status AS structured_review_status
+FROM questions q
+LEFT JOIN question_documents qd ON qd.question_id = q.id
+WHERE q.topic_id = :topicId
   AND (
       :queryText = ''
-      OR lower(text) LIKE '%' || lower(:queryText) || '%'
-      OR CAST(question_number AS TEXT) LIKE '%' || :queryText || '%'
+      OR lower(q.text) LIKE '%' || :queryText || '%'
+      OR (
+          qd.review_status = 'verified'
+          AND qd.search_text_folded LIKE '%' || :queryText || '%'
+      )
+      OR CAST(q.question_number AS TEXT) LIKE '%' || :queryText || '%'
   )
-ORDER BY source_index;
+ORDER BY q.source_index;
 
 selectQuestionById:
-SELECT q.id, q.question_number, q.question_label, q.text, q.hint_1, q.hint_2,
+SELECT q.id, q.question_number, q.question_label,
+       COALESCE(
+         CASE WHEN qd.review_status = 'verified' THEN qd.prompt_text END,
+         q.text
+       ) AS display_text,
+       COALESCE(
+         CASE WHEN qd.review_status = 'verified' THEN qh1.plain_text END,
+         q.hint_1
+       ) AS display_hint_1,
+       COALESCE(
+         CASE WHEN qd.review_status = 'verified' THEN qh2.plain_text END,
+         q.hint_2
+       ) AS display_hint_2,
        q.image_file, q.correct_answer_mask, q.extraction_warnings,
-       t.name AS topic_name, s.file_name AS source_file
+       t.name AS topic_name, s.file_name AS source_file,
+       qd.review_status AS structured_review_status
 FROM questions q
 JOIN sources s ON s.id = q.source_id
 LEFT JOIN topics t ON t.id = q.topic_id
+LEFT JOIN question_documents qd ON qd.question_id = q.id
+LEFT JOIN question_hint_content qh1
+  ON qh1.question_id = q.id AND qh1.hint_position = 1
+LEFT JOIN question_hint_content qh2
+  ON qh2.question_id = q.id AND qh2.hint_position = 2
 WHERE q.id = :questionId;
 
 selectAnswersForQuestion:
-SELECT position, text, is_correct
-FROM answers
+SELECT a.position,
+       COALESCE(
+         CASE WHEN qd.review_status = 'verified' THEN qac.plain_text END,
+         a.text
+       ) AS display_text,
+       a.is_correct
+FROM answers a
+LEFT JOIN question_documents qd ON qd.question_id = a.question_id
+LEFT JOIN question_answer_content qac
+  ON qac.question_id = a.question_id AND qac.answer_position = a.position
+WHERE a.question_id = :questionId
+ORDER BY a.position;
+
+selectContentNodesForQuestion:
+SELECT node_id, container_kind, container_position, node_position, kind,
+       plain_text, latex, document_ref, asset_id, review_status, payload_json
+FROM question_content_nodes
 WHERE question_id = :questionId
-ORDER BY position;
+ORDER BY
+  CASE container_kind WHEN 'prompt' THEN 0 WHEN 'answer' THEN 1 ELSE 2 END,
+  container_position,
+  node_position;
+
+selectStructuredDocumentCount:
+SELECT COUNT(*)
+FROM question_documents;

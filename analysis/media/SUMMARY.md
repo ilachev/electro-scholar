@@ -1,18 +1,18 @@
-# Инвентаризация изображений
+# Image inventory
 
-- Изображений: 582
-- Уникальных SHA-256: 582
-- Групп полных дубликатов: 0
-- Изображений в пилоте: 50
+- Images: 582
+- Unique SHA-256 values: 582
+- Exact-duplicate groups: 0
+- Images in the pilot: 50
 
-Семантическая классификация намеренно не выполняется эвристиками. Типы
-`text`, `formula`, `circuit`, `plot`, `table` и `illustration` фиксируются
-человеком в отдельных документах `Observation IR`; повторная генерация
-инвентаря не перезаписывает ручную разметку.
+Semantic classes are intentionally not assigned by heuristics. A human records
+the `text`, `formula`, `circuit`, `plot`, `table`, and `illustration` types in
+separate `Observation IR` documents. Regenerating the inventory does not
+overwrite manual annotations.
 
-## Темы
+## Topics
 
-| Ключ темы | Изображений |
+| Topic key | Images |
 |---|---:|
 | TEST1.DAT:1 | 35 |
 | TEST1.DAT:2 | 34 |
@@ -25,9 +25,9 @@
 | TEST2.DAT:4 | 52 |
 | TEST2.DAT:5 | 80 |
 
-## Частые размеры
+## Common dimensions
 
-| Размер | Изображений |
+| Dimensions | Images |
 |---|---:|
 | 624 x 374 | 72 |
 | 612 x 372 | 39 |

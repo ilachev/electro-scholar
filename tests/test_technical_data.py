@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +11,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 
 from tools.analyze_media import build_inventory, select_diverse_pilot
+from tools.compile_question_bank import CompilationError, compile_question_bank
 from tools.render_circuit_overlay import render_overlay
 from tools.validate_technical_ir import schema_diagnostics, semantic_diagnostics
 
@@ -17,7 +19,20 @@ from tools.validate_technical_ir import schema_diagnostics, semantic_diagnostics
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "analysis" / "schemas"
 EXAMPLE_DIR = ROOT / "analysis" / "examples"
+QUESTION_DIR = ROOT / "analysis" / "questions"
 DATABASE = ROOT / "analysis" / "database" / "question-bank.sqlite"
+PACKAGED_DATABASE = (
+    ROOT
+    / "kmp-app"
+    / "features"
+    / "question-bank"
+    / "src"
+    / "commonMain"
+    / "composeResources"
+    / "files"
+    / "database"
+    / "question_bank.sqlite"
+)
 IMAGE_ROOT = (
     ROOT
     / "kmp-app"
@@ -39,6 +54,11 @@ class TechnicalIrTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.observation = load_json(EXAMPLE_DIR / "observation-ir-example.json")
         cls.circuit = load_json(EXAMPLE_DIR / "circuit-ir-example.json")
+        cls.question = load_json(QUESTION_DIR / "test2-018.question.json")
+        cls.referenced_documents = {
+            "analysis/examples/observation-ir-example.json": cls.observation,
+            "analysis/examples/circuit-ir-example.json": cls.circuit,
+        }
 
     def test_schemas_are_valid_draft_2020_12(self) -> None:
         for path in sorted(SCHEMA_DIR.glob("*.schema.json")):
@@ -50,6 +70,13 @@ class TechnicalIrTest(unittest.TestCase):
         self.assertEqual([], semantic_diagnostics(self.observation))
         self.assertEqual([], schema_diagnostics(self.circuit, SCHEMA_DIR))
         self.assertEqual([], semantic_diagnostics(self.circuit, self.observation))
+        self.assertEqual([], schema_diagnostics(self.question, SCHEMA_DIR))
+        self.assertEqual(
+            [],
+            semantic_diagnostics(
+                self.question, referenced_documents=self.referenced_documents
+            ),
+        )
 
     def test_validator_rejects_pin_assigned_to_two_nets(self) -> None:
         invalid = copy.deepcopy(self.circuit)
@@ -70,6 +97,86 @@ class TechnicalIrTest(unittest.TestCase):
             render_overlay(self.circuit, image, output)
             self.assertTrue(output.is_file())
             self.assertGreater(output.stat().st_size, 1_000)
+
+    def test_verified_question_requires_completed_human_review(self) -> None:
+        invalid = copy.deepcopy(self.question)
+        invalid["verification"]["status"] = "verified"
+        messages = [
+            item.message
+            for item in semantic_diagnostics(
+                invalid, referenced_documents=self.referenced_documents
+            )
+        ]
+        self.assertTrue(any("verified answer key" in message for message in messages))
+        self.assertTrue(any("was not accepted" in message for message in messages))
+        self.assertTrue(any("incomplete verification" in message for message in messages))
+
+    def test_question_ir_compiles_into_searchable_runtime_tables(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "question-bank.sqlite"
+            count = compile_question_bank(DATABASE, output, [QUESTION_DIR], ROOT)
+            self.assertEqual(1, count)
+
+            connection = sqlite3.connect(output)
+            try:
+                self.assertEqual(
+                    2, connection.execute("PRAGMA user_version").fetchone()[0]
+                )
+                row = connection.execute(
+                    """
+                    SELECT qd.prompt_text, qd.search_text_folded, qac.plain_text
+                    FROM question_documents qd
+                    JOIN question_answer_content qac
+                      ON qac.question_id = qd.question_id
+                    WHERE qd.document_id = 'legacy-test:test2:018'
+                      AND qac.answer_position = 5
+                    """
+                ).fetchone()
+                self.assertIsNotNone(row)
+                self.assertIn("эквивалентным генератором", row[0])
+                self.assertIn("напряжению", row[1])
+                self.assertEqual("Нулю.", row[2])
+                self.assertEqual(
+                    "ЭДС генератора равна напряжению U_AB на разомкнутых "
+                    "выходных зажимах цепи.",
+                    connection.execute(
+                        """
+                        SELECT plain_text
+                        FROM question_hint_content
+                        WHERE hint_position = 1
+                        """
+                    ).fetchone()[0],
+                )
+                self.assertEqual(
+                    21,
+                    connection.execute(
+                        "SELECT COUNT(*) FROM question_content_nodes"
+                    ).fetchone()[0],
+                )
+            finally:
+                connection.close()
+
+    def test_question_compiler_rejects_asset_not_in_inventory(self) -> None:
+        invalid = copy.deepcopy(self.question)
+        invalid["assets"][0]["uri"] = "images/not-the-source.jpg"
+        with tempfile.TemporaryDirectory() as directory:
+            document_path = Path(directory) / "invalid.question.json"
+            document_path.write_text(
+                json.dumps(invalid, ensure_ascii=False), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(CompilationError, "media inventory"):
+                compile_question_bank(
+                    DATABASE,
+                    Path(directory) / "output.sqlite",
+                    [document_path],
+                    ROOT,
+                )
+
+    def test_runtime_database_matches_analysis_database(self) -> None:
+        self.assertEqual(
+            hashlib.sha256(DATABASE.read_bytes()).digest(),
+            hashlib.sha256(PACKAGED_DATABASE.read_bytes()).digest(),
+        )
 
 
 class MediaInventoryTest(unittest.TestCase):

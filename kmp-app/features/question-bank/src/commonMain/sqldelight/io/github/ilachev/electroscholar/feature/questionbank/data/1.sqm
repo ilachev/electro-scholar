@@ -1,0 +1,53 @@
+CREATE TABLE question_documents (
+    question_id INTEGER NOT NULL PRIMARY KEY REFERENCES questions(id) ON DELETE CASCADE,
+    document_id TEXT NOT NULL UNIQUE,
+    schema_version TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    prompt_text TEXT NOT NULL,
+    search_text TEXT NOT NULL,
+    search_text_folded TEXT NOT NULL,
+    document_json TEXT NOT NULL
+);
+
+CREATE TABLE question_content_nodes (
+    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    node_id TEXT NOT NULL,
+    container_kind TEXT NOT NULL CHECK(container_kind IN ('prompt', 'answer', 'hint')),
+    container_position INTEGER NOT NULL,
+    node_position INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    plain_text TEXT,
+    latex TEXT,
+    document_ref TEXT,
+    asset_id TEXT,
+    review_status TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    PRIMARY KEY(question_id, node_id),
+    UNIQUE(question_id, container_kind, container_position, node_position)
+);
+
+CREATE TABLE question_answer_content (
+    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    answer_position INTEGER NOT NULL,
+    plain_text TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    PRIMARY KEY(question_id, answer_position)
+);
+
+CREATE TABLE question_hint_content (
+    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    hint_position INTEGER NOT NULL,
+    plain_text TEXT NOT NULL,
+    review_status TEXT NOT NULL,
+    PRIMARY KEY(question_id, hint_position)
+);
+
+CREATE INDEX question_documents_review_idx
+ON question_documents(review_status, question_id);
+
+CREATE INDEX question_content_nodes_container_idx
+ON question_content_nodes(question_id, container_kind, container_position, node_position);
+
+INSERT OR REPLACE INTO metadata(key, value) VALUES ('schema_version', '2');
+INSERT OR REPLACE INTO metadata(key, value) VALUES ('question_ir_version', 'question-ir/v1');
+INSERT OR REPLACE INTO metadata(key, value) VALUES ('structured_question_count', '0');

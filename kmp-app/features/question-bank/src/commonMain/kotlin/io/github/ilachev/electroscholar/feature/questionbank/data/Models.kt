@@ -24,6 +24,7 @@ internal data class QuestionSummary(
     val imageFile: String?,
     val answerMask: Long,
     val warnings: String,
+    val structuredReviewStatus: String?,
 )
 
 internal data class Answer(
@@ -45,4 +46,5 @@ internal data class QuestionDetail(
     val topicName: String,
     val sourceFile: String,
     val answers: List<Answer>,
+    val structuredReviewStatus: String?,
 )

@@ -48,6 +48,9 @@ xcodebuild -scheme iosApp -configuration Debug \
 ```bash
 cd ..
 python3 tools/inspect_legacy_db.py test --export-database analysis/database
+python3 tools/compile_question_bank.py analysis/questions \
+  --base-database analysis/database/question-bank.sqlite \
+  --output analysis/database/question-bank.sqlite
 cp analysis/database/question-bank.sqlite \
   kmp-app/features/question-bank/src/commonMain/composeResources/files/database/question_bank.sqlite
 ```
@@ -58,3 +61,7 @@ do not mutate source files.
 
 Architecture rules, native adapter boundaries, and the Unix-style tool pipeline
 are documented in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+The target learning UX is in
+[`docs/PRODUCT_EXPERIENCE.md`](docs/PRODUCT_EXPERIENCE.md), and the planned
+simulation contracts are in
+[`docs/REALTIME_CIRCUIT_SIMULATION.md`](docs/REALTIME_CIRCUIT_SIMULATION.md).

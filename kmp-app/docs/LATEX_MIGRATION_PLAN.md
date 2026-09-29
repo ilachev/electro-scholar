@@ -1,114 +1,116 @@
-# План подсистемы формул
+# Formula subsystem plan
 
-## Цель
+## Goal
 
-Перевести формулы и печатный текст из JPEG в структурированное представление,
-не публикуя ни одной формулы без проверяемого происхождения и подтверждения
-человеком. Формулы являются частью более общего Technical Document Lab; модель
-электрических схем и первичный приоритет описаны в
-`../../analysis/TECHNICAL_DATA.md`.
+Convert formulas and printed text from JPEG into structured data without
+publishing any formula that lacks traceable provenance and explicit human
+approval. Formula recognition is part of the broader Technical Document Lab;
+the circuit model and current priority are described in
+[`../../analysis/TECHNICAL_DATA.md`](../../analysis/TECHNICAL_DATA.md).
 
-## Самостоятельный продукт
+## Standalone product
 
-Конвейер не является внутренней функцией приложения ТОЭ. Это модуль отдельного
-локального инструмента общего назначения `Technical Document Lab`. ТОЭ выступает
-первым клиентом, но контракт не содержит понятий «дисциплина», «тема» или
-«вопрос».
+The pipeline is not an internal feature of the electrical-engineering learning
+application. It is a module of a separate local-purpose tool, Technical
+Document Lab. ElectroScholar is its first client, but the contract contains no
+concepts such as subject, topic, or question.
 
-Минимальные входные данные:
+Minimum input:
 
-- изображение или прямоугольная область изображения;
-- MIME-тип, размеры и SHA-256 источника;
-- необязательный внешний идентификатор и контекстный текст.
+- an image or rectangular image region;
+- source MIME type, dimensions, and SHA-256;
+- optional external identifier and contextual text.
 
-Выход — версионированный пакет `Observation IR`: найденные области, кандидаты
-LaTeX, результаты валидаторов, рендеры, confidence и журнал решений человека.
-Пакет доступен через стабильную JSON-схему, SQLite и CLI, поэтому его смогут
-использовать desktop, mobile, web, пакетная обработка PDF и сторонние системы.
+The output is a versioned `Observation IR` package: detected regions, candidate
+LaTeX, validator results, renders, confidence values, and a human decision log.
+The package is available through stable JSON Schema, SQLite, and CLI contracts,
+so desktop, mobile, web, PDF batch processing, and third-party systems can all
+consume it.
 
-Распознавание и ML-адаптеры разумно реализовать отдельным offline worker на
-Python: там зрелее экосистема OCR и компьютерного зрения. KMP-приложение не
-зависит от конкретной модели и работает только с версионированным контрактом.
-Это позволяет менять движки без миграции клиентских приложений.
+Recognition and ML adapters should be a separate offline Python worker because
+the OCR and computer-vision ecosystem is stronger there. The KMP application
+depends only on a versioned contract, not on a particular model. Recognition
+engines can therefore change without migrating client applications.
 
-## Базовые правила
+## Core rules
 
-1. Оригинальный JPEG неизменяем и хранится всегда.
-2. Распознаётся не изображение целиком, а размеченные области: текст, формула,
-   таблица, электрическая схема или иллюстрация.
-3. Результат модели — кандидат, а не истинное значение.
-4. Кандидат не попадает в рабочий вопрос без успешной автоматической проверки
-   и явного решения проверяющего.
-5. Любое изменение формулы создаёт новую ревизию; история не перезаписывается.
+1. The original JPEG is immutable and always retained.
+2. Recognition operates on labeled regions, not the image as a whole: text,
+   formula, table, electrical schematic, or illustration.
+3. Model output is a candidate, not ground truth.
+4. A candidate cannot enter a production question until automated checks pass
+   and a reviewer makes an explicit decision.
+5. Every formula change creates a new revision; history is never overwritten.
 
-## Этап 1. Инвентаризация и разметка
+## Stage 1: inventory and annotation
 
-- Рассчитать SHA-256 каждого оригинала и связать его с вопросом.
-- Использовать зафиксированный пилот из 50 изображений: по 5 из каждой темы,
-  включая плохие сканы, длинные формулы, индексы, дроби и смешанные схемы.
-- Разметить прямоугольные области и тип содержимого.
-- Области схем передавать в `Circuit IR`; формулы и схемы используют общее
-  происхождение и журнал review, но разные семантические модели.
-- CircuitikZ/SVG считать производными форматами визуализации, а не источником
-  электрической топологии.
+- Calculate SHA-256 for every original and associate it with its question.
+- Use the fixed 50-image pilot: five samples from each topic, including poor
+  scans, long formulas, subscripts, fractions, and mixed circuit images.
+- Annotate rectangular regions and their content type.
+- Send schematic regions to `Circuit IR`. Formulas and circuits share
+  provenance and review logs but use different semantic models.
+- Treat CircuitikZ and SVG as derived rendering formats, not the source of
+  electrical topology.
 
-## Этап 2. Автоматическое распознавание
+## Stage 2: automated recognition
 
-Для каждой области запускать отдельный тип распознавания:
+Run a recognition mode appropriate to each region:
 
-- русский печатный текст — OCR с сохранением регистра и координат строк;
-- формула — image-to-LaTeX модель;
-- смешанная область — повторная сегментация;
-- схема/иллюстрация — без автоматической текстовой замены.
+- Russian printed text: OCR preserving case and line coordinates;
+- formula: image-to-LaTeX model;
+- mixed region: another segmentation pass;
+- schematic or illustration: no automatic textual replacement.
 
-Каждый запуск сохраняет модель, точную версию, параметры, время, confidence и
-сырой ответ. Модели работают офлайн и закрепляются контрольной суммой.
+Every run records the engine, exact version, parameters, timestamp, confidence,
+and raw output. Models run offline and are pinned by checksum.
 
-## Этап 3. Нормализация
+## Stage 3: normalization
 
-- Разрешить ограниченное подмножество LaTeX без произвольных команд и файловых
-  операций.
-- Нормализовать пробелы, скобки и эквивалентные команды, но хранить исходный
-  ответ модели отдельно.
-- Отдельно хранить Unicode-текст, LaTeX формулы и ссылку на исходный crop.
-- Не заменять OCR-ошибки автоматически по смыслу физической задачи.
+- Allow a constrained LaTeX subset without arbitrary commands or file
+  operations.
+- Normalize whitespace, braces, and equivalent commands while retaining the
+  original model response.
+- Store Unicode text, formula LaTeX, and the source crop reference separately.
+- Do not silently correct OCR errors from the inferred meaning of the physics
+  problem.
 
-## Этап 4. Автоматическая верификация
+## Stage 4: automated verification
 
-Кандидат получает набор независимых результатов:
+A candidate receives independent check results:
 
-1. Синтаксический разбор разрешённого LaTeX.
-2. Компиляция в изолированном процессе без shell escape и сетевого доступа.
-3. Рендер в PNG при размере, близком к исходной области.
-4. Визуальное сравнение исходного crop и рендера: геометрия строк, число
-   символов, SSIM и perceptual diff.
-5. Сверка чисел, индексов, знаков операций, греческих букв и единиц измерения
-   вторым OCR-проходом.
-6. Флаг расхождения, если независимые модели дали разные токены.
+1. Parse the permitted LaTeX syntax.
+2. Compile in an isolated process without shell escape or network access.
+3. Render to PNG at approximately the source region's dimensions.
+4. Compare the source crop and render using line geometry, symbol count, SSIM,
+   and perceptual diff.
+5. Cross-check numbers, subscripts, operation signs, Greek letters, and units
+   with a second OCR pass.
+6. Raise a disagreement flag when independent models produce different tokens.
 
-Высокий confidence ускоряет очередь, но никогда не заменяет человека.
+High confidence may prioritize the review queue, but never replaces a person.
 
-## Этап 5. Human-in-the-loop
+## Stage 5: human in the loop
 
-В приложение добавляется режим проверки с четырьмя синхронными представлениями:
+The application provides a review mode with four synchronized views:
 
-- исходное изображение с выделенной областью;
-- увеличенный crop;
-- редактируемый LaTeX;
-- отрендеренный результат и полупрозрачный overlay/diff.
+- original image with the region highlighted;
+- enlarged crop;
+- editable LaTeX;
+- rendered output and a translucent overlay or diff.
 
-Действия проверяющего:
+Reviewer actions:
 
-- `Подтвердить` — кандидат становится утверждённой ревизией;
-- `Исправить и подтвердить` — сохраняются исходный и исправленный варианты;
-- `Отклонить` — запись возвращается в очередь;
-- `Не формула` — исправляется тип области;
-- `Нужен второй эксперт` — для неоднозначных или плохо читаемых выражений.
+- `Approve`: the candidate becomes an approved revision;
+- `Correct and approve`: retain both the original and corrected values;
+- `Reject`: return the record to the queue;
+- `Not a formula`: correct the region type;
+- `Second review required`: flag an ambiguous or illegible expression.
 
-Для каждой операции сохраняются пользователь, время, комментарий и предыдущая
-ревизия. Массовое подтверждение без просмотра запрещено.
+Every action records the reviewer, time, comment, and preceding revision. Bulk
+approval without viewing each item is prohibited.
 
-## Предлагаемая схема данных
+## Proposed data model
 
 ### `media_assets`
 
@@ -132,23 +134,24 @@ Python: там зрелее экосистема OCR и компьютерног
 
 `id`, `revision_id`, `reviewer_id`, `decision`, `comment`, `created_at`.
 
-## Критерии готовности
+## Acceptance criteria
 
-- 100% формул имеют ссылку на оригинал и координаты области.
-- 100% утверждённых формул компилируются в изолированном валидаторе.
-- 100% утверждённых формул имеют human review event.
-- Ни один оригинал не удалён и не перезаписан.
-- Любой экран вопроса позволяет открыть исходник и историю преобразования.
-- Пилот из 50 изображений проверен до запуска массовой обработки.
+- Every formula references its original and exact region coordinates.
+- Every approved formula compiles in the isolated validator.
+- Every approved formula has a human review event.
+- No original is deleted or overwritten.
+- Every question screen can expose the source and transformation history.
+- The 50-image pilot is reviewed before batch processing begins.
 
-## Порядок следующего инкремента формул
+## Next formula increment
 
-1. Расширять уже зафиксированную JSON Schema `Observation IR` только через новую
-   версию и миграцию тестовых примеров.
-2. Использовать общий импорт изображений, SHA-256 и интерфейс разметки областей.
-3. Добавить таблицы provenance/review отдельной схемой, не связанной с ТОЭ.
-4. Подключить один OCR для текста и один image-to-LaTeX движок за адаптерами,
-   чтобы модели можно было заменять без изменения контракта и UI.
-5. Сделать изолированный компилятор и visual diff.
-6. Реализовать очередь проверки и провести пилот на 50 изображениях ТОЭ.
-7. Подключить утверждённые пакеты Formula Lab к KMP-приложению через адаптер.
+1. Extend the existing `Observation IR` JSON Schema only through a new version
+   and migrated test fixtures.
+2. Reuse image import, SHA-256, and region annotation.
+3. Add provenance and review tables in a domain-neutral schema.
+4. Put one text OCR engine and one image-to-LaTeX engine behind replaceable
+   adapters without changing the contract or UI.
+5. Implement isolated compilation and visual diff.
+6. Build the review queue and complete the 50-image ElectroScholar pilot.
+7. Connect approved Formula Lab packages to the KMP application through an
+   adapter.

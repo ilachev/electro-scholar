@@ -1,57 +1,57 @@
-# Формат базы программы «ТЕСТ»
+# Legacy TEST database format
 
-Исходные `TEST1.DAT` и `TEST2.DAT` — собственный бинарный формат 16-битной
-Windows-программы. Формат восстановлен статическим анализом `TEST.EXE` и
-проверен на всех записях обеих баз.
+The original `TEST1.DAT` and `TEST2.DAT` files use a proprietary binary format
+from a 16-bit Windows application. The format was recovered through static
+analysis of `TEST.EXE` and validated against every record in both databases.
 
-## Содержимое
+## Contents
 
-- `TEST1.DAT`: 265 вопросов, 5 тем.
-- `TEST2.DAT`: 317 вопросов, 5 тем.
-- Всего: 582 вопроса и 582 JPEG-изображения.
-- Вопрос содержит до 8 вариантов, две подсказки, изображение и битовую маску
-  правильных вариантов.
-- Русский текст хранится в Windows-1251 и при экспорте преобразуется в UTF-8.
+- `TEST1.DAT`: 265 questions across 5 topics.
+- `TEST2.DAT`: 317 questions across 5 topics.
+- Total: 582 questions and 582 JPEG images.
+- A question contains up to 8 choices, two hints, an image, and a bit mask of
+  correct choices.
+- Russian text is stored as Windows-1251 and converted to UTF-8 during export.
 
-## Индекс вопроса
+## Question index
 
-Основной индекс состоит из записей по 89 байт:
+The main index consists of 89-byte records:
 
-| Смещение | Размер | Значение |
+| Offset | Size | Value |
 |---:|---:|---|
-| 0 | 4 | смещение текста вопроса |
-| 4 | 4 | размер текста вопроса |
-| 8 | 32 | размеры восьми вариантов ответа |
-| 40 | 4 | размер первой подсказки |
-| 44 | 4 | размер второй подсказки |
-| 48 | 4 | размер изображения |
-| 52 | 1 | битовая маска правильных вариантов |
-| 53 | 4 | внутренний номер записи |
-| 57 | 32 | зашифрованная Pascal-строка с номером вопроса |
+| 0 | 4 | question-text offset |
+| 4 | 4 | question-text size |
+| 8 | 32 | sizes of the eight answer choices |
+| 40 | 4 | first-hint size |
+| 44 | 4 | second-hint size |
+| 48 | 4 | image size |
+| 52 | 1 | correct-choice bit mask |
+| 53 | 4 | internal record number |
+| 57 | 32 | encrypted Pascal string containing the question number |
 
-Бит 0 маски соответствует первому варианту, бит 1 — второму и так далее.
-Текстовые блоки защищены простым XOR, изображения дополнительно преобразованы
-XOR с `0x20`.
+Bit 0 of the mask represents the first choice, bit 1 the second choice, and so
+on. Text blocks use a simple XOR transformation; images have an additional XOR
+with `0x20`.
 
-## Известные дефекты оригинала
+## Known source defects
 
-- `TEST2`, вопрос 121: маска правильного ответа равна нулю. Правильный вариант
-  невозможно восстановить без внешнего эталона.
-- `TEST2`, вопрос 316: у второго варианта ошибочный внутренний маркер. Текст и
-  маска ответа при этом читаются.
-- У многих вариантов текст пустой намеренно: подписи нанесены на изображение,
-  а бинарная запись содержит только маркер кнопки выбора.
+- `TEST2`, question 121: the correct-answer mask is zero. The correct choice
+  cannot be recovered without an external reference.
+- `TEST2`, question 316: the second choice has an invalid internal marker. Its
+  text and answer mask remain readable.
+- Many choices intentionally have no text: their labels are drawn in the image,
+  while the binary record contains only a selection-button marker.
 
-## Экспорт
+## Export
 
-Скрипт `tools/inspect_legacy_db.py` создаёт:
+`tools/inspect_legacy_db.py` creates:
 
-- `analysis/database/question-bank.sqlite` — нормализованную SQLite-базу;
-- `analysis/database/questions.tsv` — плоскую таблицу;
-- `analysis/database/questions.json` и `topics.json`;
+- `analysis/database/question-bank.sqlite` - normalized SQLite database;
+- `analysis/database/questions.tsv` - flat table;
+- `analysis/database/questions.json` and `topics.json`;
 - `analysis/database/images/*.jpg`.
 
-Повторная сборка:
+Rebuild command:
 
 ```bash
 python3 tools/inspect_legacy_db.py test --export-database analysis/database

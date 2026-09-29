@@ -31,3 +31,25 @@ permission should be reviewed by the project owner.
 
 No repository-wide open-source license has been selected for the newly written
 code. Until one is added, normal copyright rules apply.
+
+## External reference works
+
+Textbooks used to verify formulas, methods, and answers remain separate from
+the recovered corpus. A publicly reachable PDF is not by itself evidence of a
+redistribution license. Copyrighted reference PDFs must not be committed,
+bundled into releases, or mirrored by the project unless their license has been
+verified and recorded.
+
+The repository may retain bibliographic metadata, lawful catalog or viewer
+links, precise page locators, rights status, and SHA-256 hashes of legally
+obtained local copies. Learner-facing explanations should be original
+paraphrases with citations; scans or substantial excerpts require separate
+rights review. The verification design is documented in
+`analysis/SOURCE_VERIFICATION.md`.
+
+Source language, edition, translation relationships, access terms, and license
+must be recorded independently. Translating a copyrighted passage does not
+create redistribution rights, and linking to a source does not authorize local
+mirroring. Cross-language alignment should normally store semantic claims,
+short original paraphrases, and precise locators rather than copied passages.
+The alignment model is documented in `analysis/MULTILINGUAL_KNOWLEDGE.md`.

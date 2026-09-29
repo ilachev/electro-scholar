@@ -41,4 +41,28 @@ class DatabaseSmokeTest {
         assertEquals("missing_correct_answer", question.warnings)
         assertEquals(0, question.answers.count { it.isExpected })
     }
+
+    @Test
+    fun keepsUnverifiedQuestionIrBehindThePublicationGate() = runTest {
+        val database = createDatabase()
+        val repository = QuestionRepository(database)
+        val source = repository.sources().last()
+        val topic = repository.topics(source.id).first()
+        val unpublishedMatches = repository.questions(topic.id, "эквивалентным")
+        val matches = repository.questions(topic.id, "19")
+
+        assertEquals(1L, repository.structuredDocumentCount())
+        assertEquals(0, unpublishedMatches.size)
+        assertEquals(1, matches.size)
+        val question = assertNotNull(repository.question(matches.single().id))
+        assertEquals(19L, question.number)
+        assertEquals("in_review", question.structuredReviewStatus)
+        assertEquals("уКАЖИТЕ НОМЕР ПРАВИЛЬНОГО ОТВЕТА.", question.text)
+        assertEquals("", question.answers.single { it.position == 5L }.text)
+        assertEquals(5L, question.answers.single { it.isExpected }.position)
+        assertEquals(
+            21,
+            database.databaseQueries.selectContentNodesForQuestion(question.id).executeAsList().size,
+        )
+    }
 }
