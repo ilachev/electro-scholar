@@ -459,6 +459,9 @@ private fun QuestionRow(question: QuestionSummary, selected: Boolean, onClick: (
             if (question.warnings.isNotEmpty()) {
                 Spacer(Modifier.height(3.dp))
                 Text("Требует проверки", fontSize = 11.sp, color = Warning)
+            } else if (question.structuredReviewStatus != null) {
+                Spacer(Modifier.height(3.dp))
+                StructuredStatusLabel(question.structuredReviewStatus)
             }
         }
     }
@@ -484,6 +487,10 @@ private fun QuestionDetailPane(question: QuestionDetail?, modifier: Modifier = M
         )
         Spacer(Modifier.height(8.dp))
         Text("Вопрос ${question.number}", fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+        question.structuredReviewStatus?.let { status ->
+            Spacer(Modifier.height(5.dp))
+            StructuredStatusLabel(status)
+        }
         if (question.warnings.isNotEmpty()) {
             Spacer(Modifier.height(14.dp))
             WarningBanner(question.warnings)
@@ -514,6 +521,17 @@ private fun QuestionDetailPane(question: QuestionDetail?, modifier: Modifier = M
         }
         Spacer(Modifier.height(32.dp))
     }
+}
+
+@Composable
+private fun StructuredStatusLabel(status: String) {
+    val (label, color) = when (status) {
+        "verified" -> "Машиночитаемая версия проверена" to Accent
+        "in_review" -> "Машиночитаемая версия на проверке" to Warning
+        "rejected" -> "Машиночитаемая версия отклонена" to Warning
+        else -> "Машиночитаемый черновик" to Muted
+    }
+    Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = color)
 }
 
 @Composable

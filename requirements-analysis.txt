@@ -1,4 +1,4 @@
-# Runtime dependencies for media inventory and Technical IR validation.
+# Runtime dependencies for media inventory and IR validation/compilation.
 # Direct and transitive versions are pinned so the analysis remains reproducible.
 attrs==26.1.0
 jsonschema==4.26.0

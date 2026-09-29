@@ -13,8 +13,9 @@ internal class QuestionRepository(private val database: QuestionBankDatabase) {
         }.executeAsList()
 
     fun questions(topicId: Long, query: String): List<QuestionSummary> =
-        database.databaseQueries.selectQuestionsForTopic(topicId, query.trim()) {
-                id, sourceIndex, number, text, imageFile, answerMask, warnings ->
+        database.databaseQueries.selectQuestionsForTopic(topicId, query.trim().lowercase()) {
+                id, sourceIndex, number, text, imageFile, answerMask, warnings,
+                structuredReviewStatus ->
             QuestionSummary(
                 id = id,
                 sourceIndex = sourceIndex,
@@ -23,6 +24,7 @@ internal class QuestionRepository(private val database: QuestionBankDatabase) {
                 imageFile = imageFile,
                 answerMask = answerMask,
                 warnings = warnings,
+                structuredReviewStatus = structuredReviewStatus,
             )
         }.executeAsList()
 
@@ -34,7 +36,7 @@ internal class QuestionRepository(private val database: QuestionBankDatabase) {
 
         return database.databaseQueries.selectQuestionById(questionId) {
                 id, number, label, text, hint1, hint2, imageFile, answerMask,
-                warnings, topicName, sourceFile ->
+                warnings, topicName, sourceFile, structuredReviewStatus ->
             QuestionDetail(
                 id = id,
                 number = number,
@@ -48,7 +50,11 @@ internal class QuestionRepository(private val database: QuestionBankDatabase) {
                 topicName = topicName.orEmpty(),
                 sourceFile = sourceFile,
                 answers = answers,
+                structuredReviewStatus = structuredReviewStatus,
             )
         }.executeAsOneOrNull()
     }
+
+    fun structuredDocumentCount(): Long =
+        database.databaseQueries.selectStructuredDocumentCount().executeAsOne()
 }

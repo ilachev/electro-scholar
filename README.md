@@ -20,9 +20,13 @@ language-independent.
 - Runnable Compose Multiplatform applications for desktop and Android, with an
   iOS Xcode host, backed by shared SQLite resources and SQLDelight.
 - A deterministic media inventory and a balanced 50-image annotation pilot.
-- Versioned `Observation IR v1` and `Circuit IR v1` JSON Schemas.
+- Versioned `Observation IR v1`, `Circuit IR v1`, and `Question IR v1` JSON
+  Schemas.
 - Semantic validation of components, pins, nets, operating states, provenance,
   and drawing layout.
+- A deterministic `Question IR -> SQLite` compiler with searchable structured
+  prompts and answer choices. The multiplatform learning UI publishes them only
+  after the document reaches `verified` status.
 - Source-image overlays for human verification of reconstructed schematics.
 
 ## Architecture
@@ -34,6 +38,8 @@ Technical images -> Python CV/ML worker -> Observation IR
                                       |
                                       v
                                   Circuit IR
+                                      |
+Legacy fields + technical IR -> Question IR -> runtime SQLite
                                       |
                      KMP review UI / SPICE / KiCad / CircuitikZ
 ```
@@ -75,7 +81,8 @@ python3 -m venv .venv
 
 .venv/bin/python tools/validate_technical_ir.py \
   analysis/examples/observation-ir-example.json \
-  analysis/examples/circuit-ir-example.json
+  analysis/examples/circuit-ir-example.json \
+  analysis/questions/test2-018.question.json
 ```
 
 ## Repository layout
@@ -89,6 +96,24 @@ python3 -m venv .venv
 Detailed technical-data documentation is in
 [`analysis/TECHNICAL_DATA.md`](analysis/TECHNICAL_DATA.md). The latest local
 checkpoint is documented in [`CHECKPOINT.md`](CHECKPOINT.md).
+
+Textbook-backed answer verification and learner feedback are specified in
+[`analysis/SOURCE_VERIFICATION.md`](analysis/SOURCE_VERIFICATION.md).
+Language-neutral concepts, reviewed translations, and comparisons across
+authors and languages are specified in
+[`analysis/MULTILINGUAL_KNOWLEDGE.md`](analysis/MULTILINGUAL_KNOWLEDGE.md).
+
+The target interaction model is documented in
+[`kmp-app/docs/PRODUCT_EXPERIENCE.md`](kmp-app/docs/PRODUCT_EXPERIENCE.md), and
+the realistic cross-platform simulation boundary is documented in
+[`kmp-app/docs/REALTIME_CIRCUIT_SIMULATION.md`](kmp-app/docs/REALTIME_CIRCUIT_SIMULATION.md).
+Agent sessions use [`AGENTS.md`](AGENTS.md) as the durable documentation map and
+must record significant decisions in the repository rather than relying on
+chat history.
+
+Canonical project documentation is English. The recovered Russian corpus is
+preserved verbatim and Russian remains a supported product locale; localized
+content is revisioned data rather than a competing source of truth.
 
 ## Data provenance and rights
 

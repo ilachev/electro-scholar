@@ -1,0 +1,452 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:electroscholar:schema:question-ir:v1",
+  "title": "Educational Question IR v1",
+  "description": "Canonical, reviewable question content assembled from immutable source records, images, formulas, and technical documents.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_id",
+    "source_record",
+    "assets",
+    "producers",
+    "prompt",
+    "answers",
+    "hints",
+    "answer_key",
+    "verification",
+    "review_events"
+  ],
+  "properties": {
+    "schema_version": { "const": "question-ir/v1" },
+    "document_id": { "$ref": "#/$defs/id" },
+    "source_record": { "$ref": "#/$defs/sourceRecord" },
+    "assets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/asset" }
+    },
+    "producers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/producer" }
+    },
+    "prompt": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/contentNode" }
+    },
+    "answers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/answer" }
+    },
+    "hints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/hint" }
+    },
+    "answer_key": { "$ref": "#/$defs/answerKey" },
+    "verification": { "$ref": "#/$defs/verification" },
+    "review_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/reviewEvent" }
+    },
+    "extensions": { "type": "object" }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "number", "minimum": 0 },
+        "y": { "type": "number", "minimum": 0 },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "corpus",
+        "source_file",
+        "source_index",
+        "question_number",
+        "question_label"
+      ],
+      "properties": {
+        "corpus": { "type": "string", "minLength": 1 },
+        "source_file": { "type": "string", "minLength": 1 },
+        "source_index": { "type": "integer", "minimum": 0 },
+        "question_number": { "type": "integer", "minimum": 1 },
+        "question_label": { "type": "string", "minLength": 1 }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "role",
+        "sha256",
+        "mime_type",
+        "uri"
+      ],
+      "properties": {
+        "asset_id": { "$ref": "#/$defs/id" },
+        "role": {
+          "enum": ["source", "formula_render", "derived", "fallback"]
+        },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "mime_type": { "type": "string", "minLength": 1 },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "uri": { "type": "string", "minLength": 1 }
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "name", "version"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["human", "import", "rule", "model"] },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "model_sha256": { "$ref": "#/$defs/sha256" },
+        "parameters": { "type": "object" }
+      }
+    },
+    "reviewStatus": {
+      "enum": ["unreviewed", "accepted", "corrected", "rejected", "needs_review"]
+    },
+    "legacyFieldEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "field"],
+      "properties": {
+        "kind": { "const": "legacy_field" },
+        "field": {
+          "enum": [
+            "question",
+            "answer",
+            "hint_1",
+            "hint_2",
+            "answer_key",
+            "metadata"
+          ]
+        },
+        "position": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "sourceAssetEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "asset_id"],
+      "properties": {
+        "kind": { "const": "source_asset" },
+        "asset_id": { "$ref": "#/$defs/id" },
+        "bounds": { "$ref": "#/$defs/bounds" }
+      }
+    },
+    "observationEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "document_ref", "observation_refs"],
+      "properties": {
+        "kind": { "const": "observation" },
+        "document_ref": { "type": "string", "minLength": 1 },
+        "observation_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "derivedDocumentEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "document_ref"],
+      "properties": {
+        "kind": { "const": "derived_document" },
+        "document_ref": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidence": {
+      "oneOf": [
+        { "$ref": "#/$defs/legacyFieldEvidence" },
+        { "$ref": "#/$defs/sourceAssetEvidence" },
+        { "$ref": "#/$defs/observationEvidence" },
+        { "$ref": "#/$defs/derivedDocumentEvidence" }
+      ]
+    },
+    "nodeBase": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "review_status",
+        "producer_ref",
+        "evidence"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "type": "string" },
+        "review_status": { "$ref": "#/$defs/reviewStatus" },
+        "producer_ref": { "$ref": "#/$defs/id" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence" }
+        }
+      }
+    },
+    "textNode": {
+      "allOf": [
+        { "$ref": "#/$defs/nodeBase" },
+        {
+          "type": "object",
+          "required": ["text"],
+          "properties": {
+            "kind": { "const": "text" },
+            "text": { "type": "string", "minLength": 1 },
+            "language": { "type": "string", "minLength": 2 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "formulaNode": {
+      "allOf": [
+        { "$ref": "#/$defs/nodeBase" },
+        {
+          "type": "object",
+          "required": ["latex", "plain_text", "display"],
+          "properties": {
+            "kind": { "const": "formula" },
+            "latex": { "type": "string", "minLength": 1 },
+            "plain_text": { "type": "string", "minLength": 1 },
+            "display": { "enum": ["inline", "block"] },
+            "mathml": { "type": "string", "minLength": 1 },
+            "semantic_ast": { "type": "object" },
+            "rendered_asset_id": { "$ref": "#/$defs/id" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "circuitNode": {
+      "allOf": [
+        { "$ref": "#/$defs/nodeBase" },
+        {
+          "type": "object",
+          "required": ["document_ref"],
+          "properties": {
+            "kind": { "const": "circuit" },
+            "document_ref": { "type": "string", "minLength": 1 },
+            "operating_state_id": { "$ref": "#/$defs/id" },
+            "fallback_asset_id": { "$ref": "#/$defs/id" },
+            "fallback_bounds": { "$ref": "#/$defs/bounds" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "structuredReferenceNode": {
+      "allOf": [
+        { "$ref": "#/$defs/nodeBase" },
+        {
+          "type": "object",
+          "required": ["document_ref"],
+          "properties": {
+            "kind": { "enum": ["plot", "table", "illustration"] },
+            "document_ref": { "type": "string", "minLength": 1 },
+            "plain_text": { "type": "string" },
+            "fallback_asset_id": { "$ref": "#/$defs/id" },
+            "fallback_bounds": { "$ref": "#/$defs/bounds" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "assetFragmentNode": {
+      "allOf": [
+        { "$ref": "#/$defs/nodeBase" },
+        {
+          "type": "object",
+          "required": ["asset_id", "bounds", "semantic_kind"],
+          "properties": {
+            "kind": { "const": "asset_fragment" },
+            "asset_id": { "$ref": "#/$defs/id" },
+            "bounds": { "$ref": "#/$defs/bounds" },
+            "semantic_kind": {
+              "enum": [
+                "text",
+                "formula",
+                "circuit",
+                "plot",
+                "table",
+                "illustration",
+                "mixed",
+                "unknown"
+              ]
+            },
+            "alt_text": { "type": "string" }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "contentNode": {
+      "oneOf": [
+        { "$ref": "#/$defs/textNode" },
+        { "$ref": "#/$defs/formulaNode" },
+        { "$ref": "#/$defs/circuitNode" },
+        { "$ref": "#/$defs/structuredReferenceNode" },
+        { "$ref": "#/$defs/assetFragmentNode" }
+      ]
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "position", "review_status", "content"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "position": { "type": "integer", "minimum": 1 },
+        "review_status": { "$ref": "#/$defs/reviewStatus" },
+        "content": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/contentNode" }
+        }
+      }
+    },
+    "hint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "position", "review_status", "content"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "position": { "type": "integer", "minimum": 1 },
+        "review_status": { "$ref": "#/$defs/reviewStatus" },
+        "content": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/contentNode" }
+        }
+      }
+    },
+    "answerKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "positions", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "status": { "enum": ["extracted", "verified", "unknown", "disputed"] },
+        "positions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence" }
+        },
+        "note": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "verified" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": { "positions": { "minItems": 1 } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "unknown" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": { "positions": { "maxItems": 0 } }
+          }
+        }
+      ]
+    },
+    "verificationCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "status"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": {
+          "enum": [
+            "source_match",
+            "text_transcription",
+            "formula_render",
+            "circuit_topology",
+            "answer_key",
+            "accessibility",
+            "other"
+          ]
+        },
+        "status": { "enum": ["pending", "passed", "failed", "waived"] },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "method": { "type": "string", "minLength": 1 },
+        "note": { "type": "string" }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reviewers", "checks"],
+      "properties": {
+        "status": { "enum": ["draft", "in_review", "verified", "rejected"] },
+        "reviewers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/verificationCheck" }
+        },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "reviewEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target_ref", "reviewer", "decision", "created_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "target_ref": { "$ref": "#/$defs/id" },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "decision": { "enum": ["accept", "correct", "reject", "defer"] },
+        "comment": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
