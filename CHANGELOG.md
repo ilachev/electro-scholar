@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/ilachev/electro-scholar/compare/v1.0.2...v1.1.0) (2026-09-29)
+
+
+### Features
+
+* add reviewable question knowledge layer ([#11](https://github.com/ilachev/electro-scholar/issues/11)) ([27eddc3](https://github.com/ilachev/electro-scholar/commit/27eddc32213a7f318dd7640eb8d6573b82cf2361))
+
 ## [1.0.2](https://github.com/ilachev/electro-scholar/compare/v1.0.1...v1.0.2) (2026-09-27)
 
 
