@@ -1,0 +1,84 @@
+CREATE TABLE review_documents (
+    document_id TEXT NOT NULL PRIMARY KEY,
+    schema_version TEXT NOT NULL,
+    base_document_json TEXT NOT NULL
+);
+
+CREATE TABLE review_drafts (
+    document_id TEXT NOT NULL,
+    node_id TEXT NOT NULL,
+    node_kind TEXT NOT NULL,
+    original_value TEXT NOT NULL,
+    draft_value TEXT NOT NULL,
+    original_plain_text TEXT,
+    draft_plain_text TEXT,
+    PRIMARY KEY(document_id, node_id)
+);
+
+CREATE TABLE review_events (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    document_id TEXT NOT NULL,
+    node_id TEXT NOT NULL,
+    reviewer TEXT NOT NULL,
+    decision TEXT NOT NULL,
+    comment TEXT NOT NULL,
+    original_value TEXT NOT NULL,
+    submitted_value TEXT NOT NULL,
+    original_plain_text TEXT,
+    submitted_plain_text TEXT,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX review_events_document_idx
+ON review_events(document_id, id);
+
+upsertReviewDraft:
+INSERT OR REPLACE INTO review_drafts(
+    document_id, node_id, node_kind, original_value, draft_value,
+    original_plain_text, draft_plain_text
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+insertReviewEvent:
+INSERT INTO review_events(
+    document_id, node_id, reviewer, decision, comment,
+    original_value, submitted_value, original_plain_text, submitted_plain_text,
+    created_at
+) VALUES (
+    :documentId, :nodeId, :reviewer, :decision, :comment,
+    :originalValue, :submittedValue, :originalPlainText, :submittedPlainText,
+    strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+);
+
+selectReviewDraftsForDocument:
+SELECT node_id, node_kind, original_value, draft_value,
+       original_plain_text, draft_plain_text
+FROM review_drafts
+WHERE document_id = :documentId
+ORDER BY node_id;
+
+selectReviewEventsForDocument:
+SELECT id, node_id, reviewer, decision, comment,
+       original_value, submitted_value, original_plain_text,
+       submitted_plain_text, created_at
+FROM review_events
+WHERE document_id = :documentId
+ORDER BY id;
+
+selectReviewEventCount:
+SELECT COUNT(*)
+FROM review_events;
+
+selectReviewEventCountForDocument:
+SELECT COUNT(*)
+FROM review_events
+WHERE document_id = :documentId;
+
+selectReviewDocument:
+SELECT schema_version, base_document_json
+FROM review_documents
+WHERE document_id = :documentId;
+
+upsertReviewDocument:
+INSERT OR REPLACE INTO review_documents(
+    document_id, schema_version, base_document_json
+) VALUES (?, ?, ?);

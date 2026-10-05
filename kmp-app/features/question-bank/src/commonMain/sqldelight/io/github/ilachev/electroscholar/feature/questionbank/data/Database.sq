@@ -184,3 +184,12 @@ ORDER BY
 selectStructuredDocumentCount:
 SELECT COUNT(*)
 FROM question_documents;
+
+selectStructuredDocumentsForReview:
+SELECT q.id, q.question_number, q.question_label, q.source_index,
+       s.file_name, q.image_file, qd.document_id, qd.schema_version,
+       qd.review_status, qd.document_json
+FROM question_documents qd
+JOIN questions q ON q.id = qd.question_id
+JOIN sources s ON s.id = q.source_id
+ORDER BY s.id, q.source_index;

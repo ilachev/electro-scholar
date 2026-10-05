@@ -17,10 +17,10 @@ that core.
 ```text
 androidApp ---+
 desktopApp ---+--> shared (composition root) --> features:question-bank
-iosApp -------+                                      +-- commonMain
-                                                      +-- androidMain
-                                                      +-- iosMain
-                                                      +-- jvmMain
+iosApp -------+                  |              +-- commonMain/androidMain/iosMain/jvmMain
+                                 |
+                                 +-------------> features:question-review
+                                                +-- commonMain/androidMain/iosMain/jvmMain
 ```
 
 - `androidApp` owns the Android lifecycle, manifest, and system integration.
@@ -30,6 +30,10 @@ iosApp -------+                                      +-- commonMain
 - `shared` only composes the application from feature modules and owns no data.
 - `features/question-bank` is a complete vertical slice: UI, workflows, models,
   SQLDelight, resources, platform adapters, and tests stay together.
+- `features/question-review` is a separate vertical slice: `Question IR`
+  parsing, review state, UI, local event storage, platform drivers, and tests
+  stay together. It receives raw documents and source-image slots from the
+  composition root and does not depend on the question-bank slice.
 
 New domains are added as adjacent slices, for example
 `features/formula-review`, `features/circuit-review`, and
@@ -63,6 +67,8 @@ The current slice already follows this approach:
   driver and starts from SwiftUI.
 - Desktop stores SQLite data in the user's data directory through JDBC and
   produces native DMG, DEB, and MSI packages.
+- Question review stores drafts and append-only decisions in its own local
+  database on every platform. It cannot rewrite packaged data or canonical IR.
 
 Native screens and views are allowed inside the shared application. UIKit,
 SwiftUI, Android Views, Compose platform APIs, and desktop APIs do not move
