@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/ilachev/electro-scholar/compare/v1.1.0...v1.2.0) (2026-10-05)
+
+
+### Features
+
+* add question review workflow ([d6a783f](https://github.com/ilachev/electro-scholar/commit/d6a783fe246945317ecd19c56b0f682124e6f38e))
+* add question review workflow ([057cd0f](https://github.com/ilachev/electro-scholar/commit/057cd0fec6de05b12e9b90ca35d02b95ff1d367e))
+
 ## [1.1.0](https://github.com/ilachev/electro-scholar/compare/v1.0.2...v1.1.0) (2026-09-29)
 
 
