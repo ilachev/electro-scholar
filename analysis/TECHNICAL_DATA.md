@@ -36,6 +36,8 @@ the calculation graph for a specific operating state.
   layout.
 - `schemas/question-ir-v1.schema.json` - canonical composition of text, LaTeX
   formulas, circuits, and temporary source-image fragments.
+- `schemas/question-review-patch-v1.schema.json` - deterministic transfer of
+  local human decisions back to an exact base revision of `Question IR`.
 - `questions` - editable question documents that become the source of truth for
   verified content.
 - `SOURCE_VERIFICATION.md` - bibliographic sources, independent answer
@@ -103,7 +105,8 @@ checks referential integrity that JSON Schema cannot express.
 
 - `source_file + source_index` uniquely identifies the source record;
 - every fragment has a producer, evidence, and its own review status;
-- a formula stores LaTeX and a searchable text representation;
+- a formula stores LaTeX and a searchable text representation, and review or
+  patch application changes that pair atomically;
 - a circuit is linked through `Circuit IR`, not copied into the question;
 - correct positions exist among choices and match the legacy mask;
 - `verified` is impossible while checks remain incomplete or the answer key is
@@ -118,13 +121,31 @@ claim that machine transcription is a human-verified fact. The compiler stores
 the candidate in SQLite for the review UI, while normal application queries
 publish structured text only after `verified`.
 
+## Implemented review boundary
+
+The `features/question-review` KMP slice now reads compiled `Question IR`, shows
+the immutable original and exact evidence crop, exposes text and LaTeX editing,
+lists verification checks, and records accept/correct/reject/defer events in a
+separate local SQLite overlay. It runs through the shared Compose application
+and has JVM, Android, and iOS database drivers. It does not mutate canonical IR
+or bypass the publication gate. See
+[`../kmp-app/docs/QUESTION_REVIEW.md`](../kmp-app/docs/QUESTION_REVIEW.md).
+
+`export_question_review_patch.py` deterministically exports a local overlay as
+`question-review-patch/v1`. `apply_question_review_patch.py` validates the base
+document fingerprint, source asset, targets, event identities, and original
+values before atomically producing revised `Question IR`. Formula events carry
+both LaTeX and searchable plain text and cannot apply a partial correction.
+Applying review events never marks a question verified.
+
 ## Next increment
 
-Build a local Compose review interface for `Question IR`: original and crop,
-text/LaTeX editor, formula render-back, check list, and
-accept/correct/reject/defer decisions. Process the first 10 questions through
-it, then expand annotation to the 50-image pilot. CV/ML models should be
-measured and selected only after a verified reference set exists.
+Connect isolated LaTeX compilation, render-back, overlay, and visual diff to
+the review contract without making a platform host or the GUI the source of
+truth. Then process the first 10 questions through review patch export,
+application, independent answer verification, and the publication gate before
+expanding annotation to the 50-image pilot. CV/ML models should be measured and
+selected only after a verified reference set exists.
 
 The parallel source slice is specified in `SOURCE_VERIFICATION.md`: exact
 edition registry, legacy `part + lecture` mappings, `Learning Evidence IR`,

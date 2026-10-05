@@ -1,4 +1,4 @@
-# Checkpoint: 2026-09-30
+# Checkpoint: 2026-10-05
 
 After the first runnable KMP increment, work began on an independent layer for
 technical-data and electrical-circuit analysis.
@@ -63,21 +63,48 @@ technical-data and electrical-circuit analysis.
   record significant decisions in the repository.
 - Adopted English as the canonical documentation language. Russian remains the
   immutable corpus language and an application locale.
+- Added `features/question-review` as an independent KMP vertical slice. It
+  parses the real compiled `Question IR`, displays the immutable original and
+  exact evidence crop, edits text/LaTeX candidates, exposes verification
+  checks, and records accept/correct/reject/defer decisions.
+- Added a separate `question-review.sqlite` overlay with JVM, Android, and iOS
+  drivers. Review actions retain both original and submitted values and cannot
+  mutate canonical JSON or the packaged question bank.
+- Added a narrow read-only structured-document bridge to the question-bank
+  slice and kept cross-slice composition in `shared`.
+- Added three review tests and a fifth question-bank smoke test. The review
+  parser recognizes 22 targets in `TEST2/19`, including the answer key.
+- Visually verified the desktop review workspace and corrected source-region
+  cropping after the first UI pass exposed parent-constraint scaling.
+- Added immutable base-document snapshots and a SQLDelight v1-to-v2 migration
+  to the review overlay. A reviewed base cannot be silently replaced.
+- Added `question-review-patch/v1`, deterministic review export, and atomic
+  patch application. Patches bind to canonical Question IR and source-asset
+  hashes; application validates original values and never sets `verified`.
+- Made formula review atomic across LaTeX and searchable `plain_text` in the
+  Compose editor, local SQLite overlay, exported patch, and patch application.
+  Partial formula corrections are rejected.
 
 ## Verification
 
 ```bash
 cd kmp-app
-./gradlew :features:question-bank:jvmTest
-./gradlew :androidApp:assembleDebug
-./gradlew :desktopApp:packageDmg
+./gradlew :features:question-review:jvmTest \
+  :features:question-bank:jvmTest \
+  checkArchitecture checkVersionConsistency
+./gradlew :androidApp:assembleDebug :shared:compileKotlinIosSimulatorArm64
 ```
 
-At this checkpoint, four smoke tests pass: database structure, question and
+At this checkpoint, five question-bank smoke tests pass: database structure, question and
 answer-key reads, search plus preservation of the known `TEST2/121` defect, and
-the publication gate for compiled `Question IR`.
+the publication gate and read-only review bridge for compiled `Question IR`.
 
-Eleven data, circuit, referential-integrity, and compiler tests also pass:
+Five question-review tests pass: real IR parsing, append-only correction
+persistence, reviewed-base protection, desktop schema migration, and basic
+unsafe/malformed LaTeX rejection.
+
+Fifteen data, circuit, review-patch, referential-integrity, and compiler tests
+also pass:
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
@@ -100,12 +127,12 @@ notarization, and automated CI packaging.
 
 ## Continuation point
 
-The current contract is documented in `analysis/TECHNICAL_DATA.md`. The next
-step is a local Compose review interface for `Question IR`: original image and
-crop, text/LaTeX editing, formula render-back, accept/correct/reject/defer
-decisions, and a separate queue for ambiguous junctions. After the first 10
-verified questions, expand annotation to the 50-image pilot and compare CV/ML
-models.
+The current contract is documented in `analysis/TECHNICAL_DATA.md` and
+`kmp-app/docs/QUESTION_REVIEW.md`. The next step is isolated LaTeX compilation,
+render-back, overlay/diff, and a separate queue for ambiguous junctions. Then
+the first 10 questions must complete review patch export/application,
+independent answer verification, and the publication gate before annotation
+expands to the 50-image pilot and CV/ML comparison.
 
 The related source slice is documented in `analysis/SOURCE_VERIFICATION.md`:
 verify concrete PDFs for all three volumes, create a source registry and

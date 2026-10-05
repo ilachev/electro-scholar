@@ -21,6 +21,9 @@ authoritative project artifact.
    boundaries for interactive experiments.
 9. `DATA_PROVENANCE.md` - rights and redistribution constraints.
 
+Read `kmp-app/docs/QUESTION_REVIEW.md` when changing the review queue, local
+review persistence, or the path from review decisions back to canonical IR.
+
 Read `kmp-app/docs/LATEX_MIGRATION_PLAN.md` when changing formula recognition or
 review. Read `RELEASING.md` before changing versions, CI, signing, or releases.
 
@@ -44,6 +47,11 @@ review. Read `RELEASING.md` before changing versions, CI, signing, or releases.
   related. Topic similarity is not equivalence.
 - Formula and circuit extraction must retain provenance, deterministic
   validation, and explicit human approval.
+- Formula review treats LaTeX and its searchable plain-text representation as
+  one atomic value. A correction cannot publish only one side of that pair.
+- Local review SQLite is an overlay, not canonical data. Decisions return to
+  version control only through a base-hash-bound review patch and validated
+  atomic application; applying a patch never marks a question verified.
 - A legacy answer mask and a textbook citation are evidence, not proof. A
   verified answer also needs an independent derivation, calculation, or
   simulation and human review.

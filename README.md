@@ -27,6 +27,12 @@ language-independent.
 - A deterministic `Question IR -> SQLite` compiler with searchable structured
   prompts and answer choices. The multiplatform learning UI publishes them only
   after the document reaches `verified` status.
+- A multiplatform `Question IR` review workspace with immutable source/crop
+  comparison, text and LaTeX editing, verification checks, and a separate
+  append-only local decision store.
+- Deterministic `question-review-patch/v1` export and atomic application tools
+  that reject a changed base document, update formula LaTeX and searchable text
+  together, and never bypass verification gates.
 - Source-image overlays for human verification of reconstructed schematics.
 
 ## Architecture
@@ -55,7 +61,9 @@ wrapper and pinned by per-module lockfiles.
 
 ```bash
 cd kmp-app
-./gradlew :features:question-bank:jvmTest :desktopApp:run
+./gradlew :features:question-bank:jvmTest \
+  :features:question-review:jvmTest \
+  :desktopApp:run
 ```
 
 ## Releases

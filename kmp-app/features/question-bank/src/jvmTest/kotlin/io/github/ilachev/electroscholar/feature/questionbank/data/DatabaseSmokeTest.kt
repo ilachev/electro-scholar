@@ -1,5 +1,6 @@
 package io.github.ilachev.electroscholar.feature.questionbank.data
 
+import io.github.ilachev.electroscholar.feature.questionbank.loadStructuredQuestionDocuments
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -64,5 +65,16 @@ class DatabaseSmokeTest {
             21,
             database.databaseQueries.selectContentNodesForQuestion(question.id).executeAsList().size,
         )
+    }
+
+    @Test
+    fun exposesStructuredDocumentsThroughTheReadOnlyReviewBridge() = runTest {
+        val documents = loadStructuredQuestionDocuments()
+
+        assertEquals(1, documents.size)
+        assertEquals("legacy-test:test2:018", documents.single().documentId)
+        assertEquals("in_review", documents.single().reviewStatus)
+        assertEquals(19L, documents.single().questionNumber)
+        assertNotNull(documents.single().imageFile)
     }
 }

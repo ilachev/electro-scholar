@@ -1,0 +1,10 @@
+CREATE TABLE review_documents (
+    document_id TEXT NOT NULL PRIMARY KEY,
+    schema_version TEXT NOT NULL,
+    base_document_json TEXT NOT NULL
+);
+
+ALTER TABLE review_drafts ADD COLUMN original_plain_text TEXT;
+ALTER TABLE review_drafts ADD COLUMN draft_plain_text TEXT;
+ALTER TABLE review_events ADD COLUMN original_plain_text TEXT;
+ALTER TABLE review_events ADD COLUMN submitted_plain_text TEXT;

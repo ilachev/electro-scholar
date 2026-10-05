@@ -35,7 +35,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":features:question-bank"))
+            implementation(project(":features:question-review"))
             implementation(libs.compose.runtime)
+            implementation(libs.compose.ui)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

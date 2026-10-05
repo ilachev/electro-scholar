@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,6 +40,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -95,7 +97,7 @@ private enum class CompactScreen {
 }
 
 @Composable
-fun QuestionBankFeature() {
+fun QuestionBankFeature(onOpenReview: (() -> Unit)? = null) {
     val loadState by produceState<LoadState>(LoadState.Loading) {
         value = try {
             LoadState.Ready(QuestionRepository(createDatabase()))
@@ -111,7 +113,7 @@ fun QuestionBankFeature() {
         ) {
             when (val state = loadState) {
                 LoadState.Loading -> LoadingPane()
-                is LoadState.Ready -> QuestionBrowser(state.repository)
+                is LoadState.Ready -> QuestionBrowser(state.repository, onOpenReview)
                 is LoadState.Failed -> ErrorPane(state.message)
             }
         }
@@ -141,7 +143,7 @@ private fun ErrorPane(message: String) {
 }
 
 @Composable
-private fun QuestionBrowser(repository: QuestionRepository) {
+private fun QuestionBrowser(repository: QuestionRepository, onOpenReview: (() -> Unit)?) {
     val sources = remember(repository) { repository.sources() }
     var sourceId by remember(repository) { mutableStateOf(sources.firstOrNull()?.id) }
     var topicId by remember(repository, sourceId) {
@@ -187,6 +189,7 @@ private fun QuestionBrowser(repository: QuestionRepository) {
                     title = "ElectroScholar",
                     subtitle = "Учебная электротехника",
                     trailingText = "${sources.sumOf { it.questionCount }} вопросов",
+                    onOpenReview = onOpenReview,
                 )
                 HorizontalDivider(color = Line)
                 Row(Modifier.fillMaxSize()) {
@@ -238,6 +241,7 @@ private fun QuestionBrowser(repository: QuestionRepository) {
                     title = headerTitle,
                     subtitle = headerSubtitle,
                     onBack = onBack,
+                    onOpenReview = if (onBack == null) onOpenReview else null,
                 )
                 HorizontalDivider(color = Line)
                 when (compactScreen) {
@@ -274,6 +278,7 @@ private fun AppHeader(
     subtitle: String,
     trailingText: String? = null,
     onBack: (() -> Unit)? = null,
+    onOpenReview: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().height(68.dp).background(Panel).padding(horizontal = 12.dp),
@@ -315,6 +320,14 @@ private fun AppHeader(
         trailingText?.let {
             Spacer(Modifier.width(12.dp))
             Text(it, fontSize = 13.sp, color = Muted)
+        }
+        onOpenReview?.let { openReview ->
+            Spacer(Modifier.width(8.dp))
+            TextButton(onClick = openReview) {
+                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(17.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Ревью")
+            }
         }
     }
 }
