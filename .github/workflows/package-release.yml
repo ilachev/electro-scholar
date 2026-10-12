@@ -46,7 +46,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
       - name: Test shared question-bank slice
         working-directory: kmp-app
         run: >-
@@ -80,11 +80,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
       - name: Build native desktop package
         working-directory: kmp-app
         run: ${{ matrix.command }}
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.path }}
@@ -106,7 +106,7 @@ jobs:
       - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
       - name: Install Android SDK 37
         run: android sdk install --no-metrics platforms/android-37.0
-      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
       - name: Build installable Android preview
         working-directory: kmp-app
         run: ./gradlew :androidApp:lintDebug :androidApp:assembleDebug
@@ -118,7 +118,7 @@ jobs:
           mkdir -p release-assets
           cp kmp-app/androidApp/build/outputs/apk/debug/androidApp-debug.apk \
             "release-assets/ElectroScholar-${version}-android-debug.apk"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: electro-scholar-android
           path: release-assets/*.apk
@@ -137,7 +137,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
       - name: Build iOS simulator application
         working-directory: kmp-app/iosApp
         env:
@@ -152,7 +152,7 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent \
             build/Build/Products/Release-iphonesimulator/ElectroScholar.app \
             "../../release-assets/ElectroScholar-${version}-ios-simulator.zip"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: electro-scholar-ios-simulator
           path: release-assets/*.zip
@@ -164,7 +164,7 @@ jobs:
     needs: [package-desktop, package-android, package-ios-simulator]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: electro-scholar-*
           path: release-assets
