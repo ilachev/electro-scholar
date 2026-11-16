@@ -10,7 +10,7 @@ compose = "1.12.2"
 coroutines = "1.11.0"
 kotlin = "2.4.21"
 sqldelight = "2.4.1"
-serialization = "1.12.0"
+serialization = "1.13.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
